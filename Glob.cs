@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Collections.Concurrent;
 
 namespace Glob
 {
@@ -59,6 +60,10 @@ namespace Glob
         /// Gets or sets a value indicating whether only directories should be matched. Default is false.
         /// </summary>
         public bool DirectoriesOnly { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether <see cref="Regex"/> objects should be cached. Default is true.
+        /// </summary>
+        public bool CacheRegexes { get; set; }
 
         /// <summary>
         /// Cancels a running pattern match.
@@ -79,6 +84,7 @@ namespace Glob
         public Glob()
         {
             IgnoreCase = true;
+            CacheRegexes = true;
         }
 
         /// <summary>
@@ -130,6 +136,51 @@ namespace Glob
         public IEnumerable<FileSystemInfo> Expand()
         {
             return Expand(Pattern, DirectoriesOnly);
+        }
+
+        class RegexOrString
+        {
+            public Regex Regex { get; set; }
+            public string Pattern { get; set; }
+            public bool IgnoreCase { get; set; }
+
+            public RegexOrString(string pattern, string rawString, bool ignoreCase, bool compileRegex)
+            {
+                IgnoreCase = ignoreCase;
+
+                try
+                {
+                    Regex = new Regex(pattern, RegexOptions.CultureInvariant | (ignoreCase ? RegexOptions.IgnoreCase : 0)
+                        | (compileRegex ? RegexOptions.Compiled : 0));
+                    Pattern = pattern;
+                }
+                catch
+                {
+                    Pattern = rawString;
+                }
+            }
+
+            public bool IsMatch(string input)
+            {
+                return Regex != null ? Regex.IsMatch(input) : Pattern.Equals(input, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+            }
+        }
+
+        private static ConcurrentDictionary<string, RegexOrString> RegexOrStringCache = new ConcurrentDictionary<string, RegexOrString>();
+
+        private RegexOrString CreateRegexOrString(string pattern)
+        {
+            if (!CacheRegexes) return new RegexOrString(GlobToRegex(pattern), pattern, IgnoreCase, compileRegex: false);
+
+            RegexOrString regexOrString;
+
+            if (!RegexOrStringCache.TryGetValue(pattern, out regexOrString))
+            {
+                regexOrString = new RegexOrString(GlobToRegex(pattern), pattern, IgnoreCase, compileRegex: true);
+                RegexOrStringCache[pattern] = regexOrString;
+            }
+
+            return regexOrString;
         }
 
         private IEnumerable<FileSystemInfo> Expand(string path, bool dirOnly)
@@ -223,11 +274,11 @@ namespace Glob
                 yield break;
             }
 
-            var childRegexes = Ungroup(child).Select(s => new RegexOrString(GlobToRegex(s), s, IgnoreCase)).ToList();
+            var childRegexes = Ungroup(child).Select(s => CreateRegexOrString(s)).ToList();
 
             foreach (DirectoryInfo parentDir in Expand(parent, true).DistinctBy(d => d.FullName))
             {
-                FileSystemInfo[] fileSystemEntries;
+                IEnumerable<FileSystemInfo> fileSystemEntries;
 
                 try
                 {
@@ -454,33 +505,6 @@ namespace Glob
                     yield return recursiveDir;
                 }
             }
-        }
-    }
-
-    class RegexOrString
-    {
-        public Regex Regex { get; set; }
-        public string Pattern { get; set; }
-        public bool IgnoreCase { get; set; }
-
-        public RegexOrString(string pattern, string rawString, bool ignoreCase)
-        {
-            IgnoreCase = ignoreCase;
-
-            try
-            {
-                Regex = new Regex(pattern, RegexOptions.CultureInvariant | (ignoreCase ? RegexOptions.IgnoreCase : 0));
-                Pattern = pattern;
-            }
-            catch
-            {
-                Pattern = rawString;
-            }
-        }
-
-        public bool IsMatch(string input)
-        {
-            return Regex != null ? Regex.IsMatch(input) : Pattern.Equals(input, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         }
     }
 
