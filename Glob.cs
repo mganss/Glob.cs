@@ -225,8 +225,15 @@ namespace Glob
 
             if (parent == "")
             {
-                Log("No parent directory for {0}.", path);
-                yield break;
+                try
+                {
+                    parent = Directory.GetCurrentDirectory();
+                }
+                catch (Exception ex)
+                {
+                    Log("Error getting current working directory: {1}", ex);
+                    if (ThrowOnError) throw;
+                }
             }
 
             var child = Path.GetFileName(path);
@@ -298,6 +305,8 @@ namespace Glob
                         yield return fileSystemEntry;
                     }
                 }
+
+                if (childRegexes.Any(r => r.Pattern == @"^\.\.$")) yield return parentDir.Parent ?? parentDir;
             }
         }
 

@@ -91,6 +91,12 @@ namespace Glob
             AssertEqual(ExpandNames(@"\**\dir*", ignoreCase: true, dirOnly: true), @"\dir1", @"\dir2", @"\dir3",
                 @"\dir2\dir1", @"\dir2\dir2");
         }
+
+        [Test]
+        public void CanMatchDotDot()
+        {
+            AssertEqual(Glob.ExpandNames(@"..\..\test\dir3\file*"), @"\dir3\file1");
+        }
     }
 }
 #pragma warning restore 1591
