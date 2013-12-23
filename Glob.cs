@@ -307,6 +307,7 @@ namespace Glob
                 }
 
                 if (childRegexes.Any(r => r.Pattern == @"^\.\.$")) yield return parentDir.Parent ?? parentDir;
+                if (childRegexes.Any(r => r.Pattern == @"^\.$")) yield return parentDir;
             }
         }
 

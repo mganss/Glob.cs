@@ -96,6 +96,7 @@ namespace Glob
         public void CanMatchDotDot()
         {
             AssertEqual(Glob.ExpandNames(@"..\..\test\dir3\file*"), @"\dir3\file1");
+            AssertEqual(Glob.ExpandNames(@".\..\..\.\.\test\dir3\file*"), @"\dir3\file1");
         }
     }
 }
