@@ -11,7 +11,7 @@ namespace Glob
     /// <summary>
     /// Finds files and directories by matching their path names against a pattern.
     /// </summary>
-    public class Glob
+    class Glob
     {
         /// <summary>
         /// Gets or sets a value indicating the pattern to match file and directory names against.
