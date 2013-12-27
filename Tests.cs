@@ -93,10 +93,14 @@ namespace Glob
         }
 
         [Test]
-        public void CanMatchDotDot()
+        public void CanMatchRelativePaths()
         {
             AssertEqual(Glob.ExpandNames(@"..\..\test\dir3\file*"), @"\dir3\file1");
             AssertEqual(Glob.ExpandNames(@".\..\..\.\.\test\dir3\file*"), @"\dir3\file1");
+            var cwd = Directory.GetCurrentDirectory();
+            var dir = Directory.GetParent(cwd).Parent.FullName;
+            dir = dir.Substring(2); // C:\xyz -> \xyz
+            AssertEqual(Glob.ExpandNames(dir + @"\test\dir3\file*"), @"\dir3\file1");
         }
     }
 }
