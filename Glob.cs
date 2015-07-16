@@ -455,6 +455,7 @@ namespace Glob
             }
         }
 
+#if false
         private static IEnumerable<string> ExpandGroups(string path)
         {
             var match = GroupRegex.Match(path);
@@ -478,6 +479,7 @@ namespace Glob
                 }
             }
         }
+#endif
 
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.
@@ -494,7 +496,7 @@ namespace Glob
         /// Returns a hash code for this instance.
         /// </summary>
         /// <returns>
-        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
         /// </returns>
         public override int GetHashCode()
         {

@@ -102,6 +102,51 @@ namespace Glob
             dir = dir.Substring(2); // C:\xyz -> \xyz
             AssertEqual(Glob.ExpandNames(dir + @"\test\dir3\file*"), @"\dir3\file1");
         }
+
+        [Test]
+        public void CanCancel()
+        {
+            var glob = new Glob(TestDir + @"\dir1\*");
+            glob.Cancel();
+            var fs = glob.Expand().ToList();
+        }
+
+        [Test]
+        public void CanLog()
+        {
+            var log = "";
+            var glob = new Glob(TestDir + @"\>") { IgnoreCase = true, ErrorLog = s => log += s };
+            var fs = glob.ExpandNames().ToList();
+            Assert.IsNotNullOrEmpty(log);
+        }
+
+        [Test]
+        public void CanUseStaticMethods()
+        {
+            var fs = Glob.Expand(TestDir + @"\dir1").ToList();
+        }
+
+        [Test]
+        public void CanUseUncachedRegex()
+        {
+            var fs = new Glob(TestDir + @"\*") { CacheRegexes = false }.Expand().ToList();
+        }
+
+        [Test]
+        public void DetectsInvalidPaths()
+        {
+            ExpandNames(@"\>\xyz", ignoreCase: false).ToList();
+            new Glob(@"ü:\x") { IgnoreCase = false }.Expand().ToList();
+        }
+
+        [Test]
+        public void DetectsDeniedCurrentWorkingDirectory()
+        {
+            Directory.SetCurrentDirectory(TestDir + @"\..");
+            var cwd = Directory.GetCurrentDirectory();
+            new System.Security.Permissions.FileIOPermission(System.Security.Permissions.FileIOPermissionAccess.PathDiscovery, TestDir).PermitOnly();
+            new Glob("hallo") { IgnoreCase = false }.Expand().ToList();
+        }
     }
 }
 #pragma warning restore 1591
