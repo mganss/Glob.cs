@@ -1,6 +1,10 @@
 Glob.cs
 =======
 
+[![Version](https://img.shields.io/nuget/v/Glob.cs.svg)](https://www.nuget.org/packages/Glob.cs)
+[![Build status](https://ci.appveyor.com/api/projects/status/knmq8uf073fchkty/branch/master?svg=true)](https://ci.appveyor.com/project/mganss/glob-cs/branch/master)
+[![Coverage Status](https://coveralls.io/repos/mganss/Glob.cs/badge.svg?branch=master&service=github)](https://coveralls.io/github/mganss/Glob.cs?branch=master)
+
 Single-source-file path <a href="http://en.wikipedia.org/wiki/Glob_(programming)">globbing</a> for .NET.
 
 Syntax
