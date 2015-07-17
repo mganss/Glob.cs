@@ -27,6 +27,11 @@ namespace Glob
             return new Glob(TestDir + pattern) { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }.ExpandNames();
         }
 
+        void AssertThrows<T>(Action action)
+        {
+            Assert.Throws(typeof(T), new TestDelegate(action));
+        }
+
         void AssertEqual(IEnumerable<string> actual, params string[] expected)
         {
             var exp = expected.Select(f => TestDir + f).ToList();
@@ -144,22 +149,22 @@ namespace Glob
             CollectionAssert.IsEmpty(n);
         }
 
-        [Test]
-        public void DetectsDeniedCurrentWorkingDirectory()
+        [TestCase(false)]
+        public void DetectsDeniedCurrentWorkingDirectory(bool doThrow)
         {
             Directory.SetCurrentDirectory(TestDir + @"\..");
             var cwd = Directory.GetCurrentDirectory();
             new System.Security.Permissions.FileIOPermission(System.Security.Permissions.FileIOPermissionAccess.PathDiscovery, TestDir).PermitOnly();
-            var fs = new Glob("hallo") { IgnoreCase = false }.Expand().ToList();
+            var fs = new Glob("hallo") { IgnoreCase = false, ThrowOnError = doThrow }.Expand().ToList();
             CollectionAssert.IsEmpty(fs);
         }
 
-        [Test]
-        public void CatchesFileSystemErrors()
+        [TestCase(false)]
+        public void CatchesFileSystemErrors(bool doThrow)
         {
             var root = Path.GetPathRoot(TestDir);
             new System.Security.Permissions.FileIOPermission(System.Security.Permissions.FileIOPermissionAccess.PathDiscovery | System.Security.Permissions.FileIOPermissionAccess.Read, root).PermitOnly();
-            var fs = new Glob(root + @"\*\*") { IgnoreCase = false }.Expand().ToList();
+            var fs = new Glob(root + @"\*\*") { IgnoreCase = false, ThrowOnError = doThrow }.Expand().ToList();
         }
 
         [Test]
@@ -183,6 +188,16 @@ namespace Glob
             var glob = new Glob("abc");
             Assert.False(glob.Equals(4711));
             Assert.True(glob.Equals(new Glob("abc")));
+        }
+
+        [Test]
+        public void CanThrow()
+        {
+            AssertThrows<ArgumentException>(() => new Glob(TestDir + @"\>") { ThrowOnError = true }.ExpandNames().ToList());
+            AssertThrows<UnauthorizedAccessException>(() => CatchesFileSystemErrors(doThrow: true));
+            AssertThrows<System.Security.SecurityException>(() => DetectsDeniedCurrentWorkingDirectory(doThrow: true));
+            AssertThrows<ArgumentException>(() => new Glob(TestDir + @"\>\xyz") { ThrowOnError = true, IgnoreCase = false }.ExpandNames().ToList());
+            AssertThrows<ArgumentException>(() => new Glob(@"ü:\x") { ThrowOnError = true, IgnoreCase = false }.ExpandNames().ToList());
         }
     }
 }
