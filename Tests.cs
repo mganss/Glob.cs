@@ -58,6 +58,7 @@ namespace Glob
             AssertEqual(ExpandNames(@"\dir2\{file*,dir1\1?3}"), @"\dir2\file1", @"\dir2\file2", @"\dir2\file3", @"\dir2\dir1\123");
             AssertEqual(ExpandNames(@"\{dir3,dir2\{dir1,dir2}}\file1"), @"\dir3\file1", @"\dir2\dir2\file1");
             AssertEqual(ExpandNames(@"\dir{3,2\dir{1,2}}\[fgh]*1"), @"\dir3\file1", @"\dir2\dir2\file1");
+            AssertEqual(ExpandNames(@"\{d,e}ir1\???"), @"\dir1\abc");
         }
 
         [Test]
@@ -109,6 +110,7 @@ namespace Glob
             var glob = new Glob(TestDir + @"\dir1\*");
             glob.Cancel();
             var fs = glob.Expand().ToList();
+            Assert.AreEqual(0, fs.Count);
         }
 
         [Test]
@@ -123,20 +125,23 @@ namespace Glob
         [Test]
         public void CanUseStaticMethods()
         {
-            var fs = Glob.Expand(TestDir + @"\dir1").ToList();
+            var fs = Glob.Expand(TestDir + @"\dir1\abc").Select(f => f.FullName).ToList();
+            AssertEqual(fs, @"\dir1\abc");
         }
 
         [Test]
         public void CanUseUncachedRegex()
         {
-            var fs = new Glob(TestDir + @"\*") { CacheRegexes = false }.Expand().ToList();
+            var fs = new Glob(TestDir + @"\dir1\*") { CacheRegexes = false }.ExpandNames().ToList();
+            AssertEqual(fs, @"\dir1\abc");
         }
 
         [Test]
         public void DetectsInvalidPaths()
         {
             ExpandNames(@"\>\xyz", ignoreCase: false).ToList();
-            new Glob(@"ü:\x") { IgnoreCase = false }.Expand().ToList();
+            var n = new Glob(@"ü:\x") { IgnoreCase = false }.ExpandNames().ToList();
+            CollectionAssert.IsEmpty(n);
         }
 
         [Test]
@@ -145,7 +150,39 @@ namespace Glob
             Directory.SetCurrentDirectory(TestDir + @"\..");
             var cwd = Directory.GetCurrentDirectory();
             new System.Security.Permissions.FileIOPermission(System.Security.Permissions.FileIOPermissionAccess.PathDiscovery, TestDir).PermitOnly();
-            new Glob("hallo") { IgnoreCase = false }.Expand().ToList();
+            var fs = new Glob("hallo") { IgnoreCase = false }.Expand().ToList();
+            CollectionAssert.IsEmpty(fs);
+        }
+
+        [Test]
+        public void CatchesFileSystemErrors()
+        {
+            var root = Path.GetPathRoot(TestDir);
+            new System.Security.Permissions.FileIOPermission(System.Security.Permissions.FileIOPermissionAccess.PathDiscovery | System.Security.Permissions.FileIOPermissionAccess.Read, root).PermitOnly();
+            var fs = new Glob(root + @"\*\*") { IgnoreCase = false }.Expand().ToList();
+        }
+
+        [Test]
+        public void CanMatchRelativeChildren()
+        {
+            AssertEqual(ExpandNames(@"\dir1\.", ignoreCase: false, dirOnly: true), @"\dir1");
+            AssertEqual(ExpandNames(@"\dir2\dir1\..", ignoreCase: false, dirOnly: true), @"\dir2");
+        }
+
+        [Test]
+        public void ReturnsStringAndHash()
+        {
+            var glob = new Glob("abc");
+            Assert.AreEqual("abc", glob.ToString());
+            Assert.AreEqual("abc".GetHashCode(), glob.GetHashCode());
+        }
+
+        [Test]
+        public void CanCompareInstances()
+        {
+            var glob = new Glob("abc");
+            Assert.False(glob.Equals(4711));
+            Assert.True(glob.Equals(new Glob("abc")));
         }
     }
 }
