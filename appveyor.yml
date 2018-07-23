@@ -8,7 +8,7 @@ build_script:
   - dotnet restore
   - dotnet pack --include-symbols --include-source -c Release /p:VersionPrefix=%APPVEYOR_BUILD_VERSION% Glob
 test_script:
-  - dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="..\..\coverage.xml" Glob.Tests\Glob.Tests.csproj
+  - dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="..\coverage.xml" Glob.Tests\Glob.Tests.csproj
   - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
   - pip install codecov
   - codecov -f "coverage.xml"
