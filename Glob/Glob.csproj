@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.4;net40</TargetFrameworks>
+    <Description>File system path globbing</Description>
+    <Copyright>Copyright 2013-2018 Michael Ganss</Copyright>
+    <AssemblyTitle>Glob.cs</AssemblyTitle>
+    <VersionPrefix>1.0.0-VERSION</VersionPrefix>
+    <Authors>Michael Ganss</Authors>
+    <AssemblyName>Glob</AssemblyName>
+    <PackageId>Glob.cs</PackageId>
+    <PackageTags>glob</PackageTags>
+    <PackageProjectUrl>https://github.com/mganss/Glob.cs</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/mganss/Glob.cs/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>git://github.com/mganss/Glob.cs</RepositoryUrl>
+    <RootNamespace>Ganss.IO</RootNamespace>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Glob.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Abstractions" Version="2.1.0.209" />
+  </ItemGroup>
+
+</Project>

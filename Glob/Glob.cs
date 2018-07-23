@@ -5,13 +5,14 @@ using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Collections.Concurrent;
+using System.IO.Abstractions;
 
-namespace Glob
+namespace Ganss.IO
 {
     /// <summary>
     /// Finds files and directories by matching their path names against a pattern.
     /// </summary>
-    class Glob
+    public class Glob
     {
         /// <summary>
         /// Gets or sets a value indicating the pattern to match file and directory names against.
@@ -75,14 +76,18 @@ namespace Glob
 
         private void Log(string s, params object[] args)
         {
-            if (ErrorLog != null) ErrorLog(string.Format(s, args));
+            ErrorLog?.Invoke(string.Format(s, args));
         }
+
+        readonly IFileSystem fileSystem;
 
         /// <summary>
         /// Creates a new instance.
         /// </summary>
-        public Glob()
+        /// <param name="fileSystem">The <see cref="IFileSystem"/> implementation to use.</param>
+        public Glob(IFileSystem fileSystem)
         {
+            this.fileSystem = fileSystem;
             IgnoreCase = true;
             CacheRegexes = true;
         }
@@ -90,8 +95,25 @@ namespace Glob
         /// <summary>
         /// Creates a new instance.
         /// </summary>
+        public Glob(): this(new FileSystem())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance.
+        /// </summary>
         /// <param name="pattern">The pattern to be matched. See <see cref="Pattern"/> for syntax.</param>
-        public Glob(string pattern): this()
+        /// <param name="fileSystem">The <see cref="IFileSystem"/> implementation to use.</param>
+        public Glob(string pattern, IFileSystem fileSystem) : this(fileSystem)
+        {
+            Pattern = pattern;
+        }
+
+        /// <summary>
+        /// Creates a new instance.
+        /// </summary>
+        /// <param name="pattern">The pattern to be matched. See <see cref="Pattern"/> for syntax.</param>
+        public Glob(string pattern) : this()
         {
             Pattern = pattern;
         }
@@ -102,10 +124,11 @@ namespace Glob
         /// <param name="pattern">The pattern to be matched.</param>
         /// <param name="ignoreCase">true if case should be ignored; false, otherwise.</param>
         /// <param name="dirOnly">true if only directories shoud be matched; false, otherwise.</param>
+        /// <param name="fileSystem">The <see cref="IFileSystem"/> implementation to use. The default (null) is the physical file system.</param>
         /// <returns>The matched path names</returns>
-        public static IEnumerable<string> ExpandNames(string pattern, bool ignoreCase = true, bool dirOnly = false)
+        public static IEnumerable<string> ExpandNames(string pattern, bool ignoreCase = true, bool dirOnly = false, IFileSystem fileSystem = null)
         {
-            return new Glob(pattern) { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }.ExpandNames();
+            return new Glob(pattern, fileSystem ?? new FileSystem()) { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }.ExpandNames();
         }
 
         /// <summary>
@@ -114,10 +137,11 @@ namespace Glob
         /// <param name="pattern">The pattern to be matched.</param>
         /// <param name="ignoreCase">true if case should be ignored; false, otherwise.</param>
         /// <param name="dirOnly">true if only directories shoud be matched; false, otherwise.</param>
-        /// <returns>The matched <see cref="FileSystemInfo"/> objects</returns>
-        public static IEnumerable<FileSystemInfo> Expand(string pattern, bool ignoreCase = true, bool dirOnly = false)
+        /// <param name="fileSystem">The <see cref="IFileSystem"/> implementation to use. The default (null) is the physical file system.</param>
+        /// <returns>The matched <see cref="FileSystemInfoBase"/> objects</returns>
+        public static IEnumerable<FileSystemInfoBase> Expand(string pattern, bool ignoreCase = true, bool dirOnly = false, IFileSystem fileSystem = null)
         {
-            return new Glob(pattern) { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }.Expand();
+            return new Glob(pattern, fileSystem ?? new FileSystem()) { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }.Expand();
         }
 
         /// <summary>
@@ -133,7 +157,7 @@ namespace Glob
         /// Performs a pattern match.
         /// </summary>
         /// <returns>The matched <see cref="FileSystemInfo"/> objects</returns>
-        public IEnumerable<FileSystemInfo> Expand()
+        public IEnumerable<FileSystemInfoBase> Expand()
         {
             return Expand(Pattern, DirectoriesOnly);
         }
@@ -172,9 +196,7 @@ namespace Glob
         {
             if (!CacheRegexes) return new RegexOrString(GlobToRegex(pattern), pattern, IgnoreCase, compileRegex: false);
 
-            RegexOrString regexOrString;
-
-            if (!RegexOrStringCache.TryGetValue(pattern, out regexOrString))
+            if (!RegexOrStringCache.TryGetValue(pattern, out RegexOrString regexOrString))
             {
                 regexOrString = new RegexOrString(GlobToRegex(pattern), pattern, IgnoreCase, compileRegex: true);
                 RegexOrStringCache[pattern] = regexOrString;
@@ -183,9 +205,9 @@ namespace Glob
             return regexOrString;
         }
 
-        private static char[] GlobCharacters = "*?[]{}".ToCharArray();
+        private static readonly char[] GlobCharacters = "*?[]{}".ToCharArray();
 
-        private IEnumerable<FileSystemInfo> Expand(string path, bool dirOnly)
+        private IEnumerable<FileSystemInfoBase> Expand(string path, bool dirOnly)
         {
             if (Cancelled) yield break;
 
@@ -198,12 +220,12 @@ namespace Glob
             // but only if ignoring case because FileSystemInfo.Exists always ignores case.
             if (IgnoreCase && path.IndexOfAny(GlobCharacters) < 0)
             {
-                FileSystemInfo fsi = null;
+                FileSystemInfoBase fsi = null;
                 bool exists = false;
 
                 try
                 {
-                    fsi = dirOnly ? (FileSystemInfo)new DirectoryInfo(path) : new FileInfo(path);
+                    fsi = dirOnly ? (FileSystemInfoBase)fileSystem.DirectoryInfo.FromDirectoryName(path) : fileSystem.FileInfo.FromFileName(path);
                     exists = fsi.Exists;
                 }
                 catch (Exception ex)
@@ -220,7 +242,7 @@ namespace Glob
 
             try
             {
-                parent = Path.GetDirectoryName(path);
+                parent = fileSystem.Path.GetDirectoryName(path);
             }
             catch (Exception ex)
             {
@@ -231,11 +253,11 @@ namespace Glob
 
             if (parent == null)
             {
-                DirectoryInfo dir = null;
+                DirectoryInfoBase dir = null;
 
                 try
                 {
-                    dir = new DirectoryInfo(path);
+                    dir = fileSystem.DirectoryInfo.FromDirectoryName(path);
                 }
                 catch (Exception ex)
                 {
@@ -251,7 +273,7 @@ namespace Glob
             {
                 try
                 {
-                    parent = Directory.GetCurrentDirectory();
+                    parent = fileSystem.Directory.GetCurrentDirectory();
                 }
                 catch (Exception ex)
                 {
@@ -260,7 +282,7 @@ namespace Glob
                 }
             }
 
-            var child = Path.GetFileName(path);
+            var child = fileSystem.Path.GetFileName(path);
 
             // handle groups that contain folders
             // child will contain unmatched closing brace
@@ -279,20 +301,9 @@ namespace Glob
 
             if (child == "**")
             {
-                foreach (DirectoryInfo dir in Expand(parent, true).DistinctBy(d => d.FullName))
+                foreach (DirectoryInfoBase dir in Expand(parent, true).DistinctBy(d => d.FullName))
                 {
-                    DirectoryInfo[] recursiveDirectories;
-
-                    try
-                    {
-                        recursiveDirectories = GetDirectories(dir).ToArray();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log("Error finding recursive directory in {0}: {1}.", dir, ex);
-                        if (ThrowOnError) throw;
-                        continue;
-                    }
+                    var recursiveDirectories = GetDirectories(dir).ToArray();
 
                     yield return dir;
 
@@ -307,9 +318,9 @@ namespace Glob
 
             var childRegexes = Ungroup(child).Select(s => CreateRegexOrString(s)).ToList();
 
-            foreach (DirectoryInfo parentDir in Expand(parent, true).DistinctBy(d => d.FullName))
+            foreach (DirectoryInfoBase parentDir in Expand(parent, true).DistinctBy(d => d.FullName))
             {
-                IEnumerable<FileSystemInfo> fileSystemEntries;
+                IEnumerable<FileSystemInfoBase> fileSystemEntries;
 
                 try
                 {
@@ -377,7 +388,7 @@ namespace Glob
             return regex.ToString();
         }
 
-        private static Regex GroupRegex = new Regex(@"{([^}]*)}");
+        private static readonly Regex GroupRegex = new Regex(@"{([^}]*)}");
 
         private static IEnumerable<string> Ungroup(string path)
         {
@@ -455,32 +466,6 @@ namespace Glob
             }
         }
 
-#if false
-        private static IEnumerable<string> ExpandGroups(string path)
-        {
-            var match = GroupRegex.Match(path);
-
-            if (!match.Success)
-            {
-                yield return path;
-                yield break;
-            }
-
-            var prefix = path.Substring(0, match.Index);
-            var postfix = path.Substring(match.Index + match.Length);
-            var postGroups = ExpandGroups(postfix);
-
-            foreach (var groupItem in match.Groups[1].Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-            {
-                foreach (var postGroup in postGroups)
-                {
-                    var s = prefix + groupItem + postGroup;
-                    yield return s;
-                }
-            }
-        }
-#endif
-
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.
         /// </summary>
@@ -519,9 +504,9 @@ namespace Glob
             return Pattern == g.Pattern;
         }
 
-        private static IEnumerable<DirectoryInfo> GetDirectories(DirectoryInfo root)
+        private static IEnumerable<DirectoryInfoBase> GetDirectories(DirectoryInfoBase root)
         {
-            DirectoryInfo[] subDirs = null;
+            DirectoryInfoBase[] subDirs = null;
 
             try
             {
@@ -532,7 +517,7 @@ namespace Glob
                 yield break;
             }
 
-            foreach (DirectoryInfo dirInfo in subDirs)
+            foreach (DirectoryInfoBase dirInfo in subDirs)
             {
                 yield return dirInfo;
 
