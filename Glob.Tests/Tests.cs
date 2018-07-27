@@ -9,6 +9,7 @@ using Ganss.IO;
 using System.Reflection;
 using System.IO.Abstractions.TestingHelpers;
 using System.IO.Abstractions;
+using System.Text.RegularExpressions;
 
 #pragma warning disable 1591
 namespace Ganss.IO.Tests
@@ -16,46 +17,51 @@ namespace Ganss.IO.Tests
     public class Tests
     {
         public MockFileSystem FileSystem { get; set; }
-        const string TestDir = "c:";
+        string TestDir => Path.GetFullPath(FixPath("/test"));
 
         public Tests()
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                [$@"{TestDir}\d"] = new MockFileData(""),
-                [$@"{TestDir}\dir1\abc"] = new MockFileData(""),
-                [$@"{TestDir}\dir2\dir1\123"] = new MockFileData(""),
-                [$@"{TestDir}\dir2\dir1\456"] = new MockFileData(""),
-                [$@"{TestDir}\dir2\dir2\file1"] = new MockFileData(""),
-                [$@"{TestDir}\dir2\dir2\file2"] = new MockFileData(""),
-                [$@"{TestDir}\dir2\dir2\file3"] = new MockFileData(""),
-                [$@"{TestDir}\dir2\dir2\xyz"] = new MockFileData(""),
-                [$@"{TestDir}\dir2\file1"] = new MockFileData(""),
-                [$@"{TestDir}\dir2\file2"] = new MockFileData(""),
-                [$@"{TestDir}\dir2\file3"] = new MockFileData(""),
-                [$@"{TestDir}\dir3\file1"] = new MockFileData(""),
-                [$@"{TestDir}\dir3\xyz"] = new MockFileData(""),
-                [$@"{TestDir}\file1"] = new MockFileData(""),
-                [$@"{TestDir}\[dir"] = new MockFileData(""),
-                [$@"{TestDir}\[dir]"] = new MockFileData(""),
-                [$@"{TestDir}\{{dir"] = new MockFileData(""),
-                [$@"{TestDir}\{{dir1"] = new MockFileData(""),
-                [$@"{TestDir}\{{dir1}}"] = new MockFileData(""),
+                [$@"{TestDir}/d"] = new MockFileData(""),
+                [$@"{TestDir}/dir1/abc"] = new MockFileData(""),
+                [$@"{TestDir}/dir2/dir1/123"] = new MockFileData(""),
+                [$@"{TestDir}/dir2/dir1/456"] = new MockFileData(""),
+                [$@"{TestDir}/dir2/dir2/file1"] = new MockFileData(""),
+                [$@"{TestDir}/dir2/dir2/file2"] = new MockFileData(""),
+                [$@"{TestDir}/dir2/dir2/file3"] = new MockFileData(""),
+                [$@"{TestDir}/dir2/dir2/xyz"] = new MockFileData(""),
+                [$@"{TestDir}/dir2/file1"] = new MockFileData(""),
+                [$@"{TestDir}/dir2/file2"] = new MockFileData(""),
+                [$@"{TestDir}/dir2/file3"] = new MockFileData(""),
+                [$@"{TestDir}/dir3/file1"] = new MockFileData(""),
+                [$@"{TestDir}/dir3/xyz"] = new MockFileData(""),
+                [$@"{TestDir}/file1"] = new MockFileData(""),
+                [$@"{TestDir}/[dir"] = new MockFileData(""),
+                [$@"{TestDir}/[dir]"] = new MockFileData(""),
+                [$@"{TestDir}/{{dir"] = new MockFileData(""),
+                [$@"{TestDir}/{{dir1"] = new MockFileData(""),
+                [$@"{TestDir}/{{dir1}}"] = new MockFileData(""),
             });
 
-            fileSystem.Directory.SetCurrentDirectory($@"{TestDir}\dir2\dir1");
+            fileSystem.Directory.SetCurrentDirectory(Path.GetFullPath(FixPath($@"{TestDir}/dir2/dir1")));
 
             FileSystem = fileSystem;
         }
 
+        private string FixPath(string v)
+        {
+            return Regex.Replace(v, @"[/\\]", Path.DirectorySeparatorChar.ToString());
+        }
+
         IEnumerable<string> ExpandNames(string pattern, bool ignoreCase = true, bool dirOnly = false)
         {
-            return new Glob(TestDir + pattern, FileSystem) { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }.ExpandNames();
+            return new Glob(Path.GetFullPath(FixPath(TestDir + pattern)), FileSystem) { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }.ExpandNames();
         }
 
         void AssertEqual(IEnumerable<string> actual, params string[] expected)
         {
-            var exp = expected.Select(f => TestDir + f).ToList();
+            var exp = expected.Select(f => Path.GetFullPath(FixPath(TestDir + f))).ToList();
             var act = actual.ToList();
             Assert.Equal(exp, act);
         }
@@ -63,17 +69,17 @@ namespace Ganss.IO.Tests
         [Fact]
         public void CanExpandSimpleCases()
         {
-            AssertEqual(ExpandNames(@"\file1"), @"\file1");
-            AssertEqual(ExpandNames(@"\dir3\file*"), @"\dir3\file1");
-            AssertEqual(ExpandNames(@"\dir2\*\*1*"), @"\dir2\dir1\123", @"\dir2\dir2\file1");
-            AssertEqual(ExpandNames(@"\**\file1"), @"\file1", @"\dir2\file1", @"\dir2\dir2\file1", @"\dir3\file1");
-            AssertEqual(ExpandNames(@"\**\*xxx"));
-            AssertEqual(ExpandNames(@"\dir2\file[13]"), @"\dir2\file1", @"\dir2\file3");
-            AssertEqual(ExpandNames(@"\dir3\???"), @"\dir3\xyz");
-            AssertEqual(ExpandNames(@"\dir3\[^f]*"), @"\dir3\xyz");
-            AssertEqual(ExpandNames(@"\dir3\[g-z]*"), @"\dir3\xyz");
-            AssertEqual(ExpandNames(@"\[dir]"), @"\d");
-            AssertEqual(ExpandNames(@"\**\d"), @"\d");
+            AssertEqual(ExpandNames(@"/file1"), @"/file1");
+            AssertEqual(ExpandNames(@"/dir3/file*"), @"/dir3/file1");
+            AssertEqual(ExpandNames(@"/dir2/*/*1*"), @"/dir2/dir1/123", @"/dir2/dir2/file1");
+            AssertEqual(ExpandNames(@"/**/file1"), @"/file1", @"/dir2/file1", @"/dir2/dir2/file1", @"/dir3/file1");
+            AssertEqual(ExpandNames(@"/**/*xxx"));
+            AssertEqual(ExpandNames(@"/dir2/file[13]"), @"/dir2/file1", @"/dir2/file3");
+            AssertEqual(ExpandNames(@"/dir3/???"), @"/dir3/xyz");
+            AssertEqual(ExpandNames(@"/dir3/[^f]*"), @"/dir3/xyz");
+            AssertEqual(ExpandNames(@"/dir3/[g-z]*"), @"/dir3/xyz");
+            AssertEqual(ExpandNames(@"/[dir]"), @"/d");
+            AssertEqual(ExpandNames(@"/**/d"), @"/d");
         }
 
         [Fact]
@@ -122,12 +128,8 @@ namespace Ganss.IO.Tests
         [Fact]
         public void CanMatchRelativePaths()
         {
-            AssertEqual(Glob.ExpandNames(@"..\..\dir3\file*", ignoreCase: true, dirOnly: false, fileSystem: FileSystem), @"\dir3\file1");
-            AssertEqual(Glob.ExpandNames(@".\..\..\.\.\dir3\file*", ignoreCase: true, dirOnly: false, fileSystem: FileSystem), @"\dir3\file1");
-            var cwd = FileSystem.Directory.GetCurrentDirectory();
-            var dir = FileSystem.Directory.GetParent(cwd).Parent.FullName;
-            dir = dir.Substring(2).TrimEnd('\\'); // C:\xyz -> \xyz
-            AssertEqual(Glob.ExpandNames(dir + @"\dir3\file*", ignoreCase: true, dirOnly: false, fileSystem: FileSystem), @"\dir3\file1");
+            AssertEqual(Glob.ExpandNames(FixPath(@"..\..\dir3\file*"), ignoreCase: true, dirOnly: false, fileSystem: FileSystem), @"\dir3\file1");
+            AssertEqual(Glob.ExpandNames(FixPath(@".\..\..\.\.\dir3\file*"), ignoreCase: true, dirOnly: false, fileSystem: FileSystem), @"\dir3\file1");
         }
 
         [Fact]
@@ -143,7 +145,7 @@ namespace Ganss.IO.Tests
         public void CanLog()
         {
             var log = "";
-            var glob = new Glob(@"ü:\\x", new TestFileSystem()) { IgnoreCase = true, ErrorLog = s => log += s };
+            var glob = new Glob(@"test", new TestFileSystem()) { IgnoreCase = true, ErrorLog = s => log += s };
             var fs = glob.ExpandNames().ToList();
             Assert.False(string.IsNullOrEmpty(log));
         }
@@ -151,23 +153,15 @@ namespace Ganss.IO.Tests
         [Fact]
         public void CanUseStaticMethods()
         {
-            var fs = Glob.Expand(TestDir + @"\dir1\abc", ignoreCase: true, dirOnly: false, fileSystem: FileSystem).Select(f => f.FullName).ToList();
+            var fs = Glob.Expand(FixPath(TestDir + @"\dir1\abc"), ignoreCase: true, dirOnly: false, fileSystem: FileSystem).Select(f => f.FullName).ToList();
             AssertEqual(fs, @"\dir1\abc");
         }
 
         [Fact]
         public void CanUseUncachedRegex()
         {
-            var fs = new Glob(TestDir + @"\dir1\*", FileSystem) { CacheRegexes = false }.ExpandNames().ToList();
+            var fs = new Glob(FixPath(TestDir + @"\dir1\*"), FileSystem) { CacheRegexes = false }.ExpandNames().ToList();
             AssertEqual(fs, @"\dir1\abc");
-        }
-
-        [Fact]
-        public void DetectsInvalidPaths()
-        {
-            ExpandNames(@"\>\xyz", ignoreCase: false).ToList();
-            var n = new Glob(@"ü:\x", FileSystem) { IgnoreCase = false }.ExpandNames().ToList();
-            Assert.Empty(n);
         }
 
         [Fact]
