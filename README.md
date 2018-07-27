@@ -6,7 +6,7 @@ Glob.cs
 [![codecov.io](https://codecov.io/github/mganss/Glob.cs/coverage.svg?branch=master)](https://codecov.io/github/mganss/Glob.cs?branch=master)
 
 
-Single-source-file path <a href="http://en.wikipedia.org/wiki/Glob_(programming)">globbing</a> for .NET (netstandard 1.4 and net40).
+Single-source-file path <a href="http://en.wikipedia.org/wiki/Glob_(programming)">globbing</a> for .NET (netstandard1.4 and net40).
 
 Features
 --------
