@@ -324,7 +324,7 @@ namespace Ganss.IO
 
                 try
                 {
-                    fileSystemEntries = dirOnly ? parentDir.GetDirectories() : parentDir.GetFileSystemInfos();
+                    fileSystemEntries = dirOnly ? parentDir.EnumerateDirectories() : parentDir.EnumerateFileSystemInfos();
                 }
                 catch (Exception ex)
                 {
@@ -506,11 +506,11 @@ namespace Ganss.IO
 
         private static IEnumerable<DirectoryInfoBase> GetDirectories(DirectoryInfoBase root)
         {
-            DirectoryInfoBase[] subDirs = null;
+            IEnumerable<DirectoryInfoBase> subDirs = null;
 
             try
             {
-                subDirs = root.GetDirectories();
+                subDirs = root.EnumerateDirectories();
             }
             catch (Exception)
             {
