@@ -15,6 +15,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/mganss/Glob.cs</RepositoryUrl>
     <RootNamespace>Ganss.IO</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Glob.xml</DocumentationFile>
   </PropertyGroup>
 

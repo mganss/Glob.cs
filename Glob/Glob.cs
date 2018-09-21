@@ -304,11 +304,9 @@ namespace Ganss.IO
             {
                 foreach (DirectoryInfoBase dir in Expand(parent, true).DistinctBy(d => d.FullName).Cast<DirectoryInfoBase>())
                 {
-                    var recursiveDirectories = GetDirectories(dir).ToArray();
-
                     yield return dir;
 
-                    foreach (var subDir in recursiveDirectories)
+                    foreach (var subDir in GetDirectories(dir))
                     {
                         yield return subDir;
                     }
@@ -351,8 +349,8 @@ namespace Ganss.IO
 
         private static string GlobToRegex(string glob)
         {
-            StringBuilder regex = new StringBuilder();
-            bool characterClass = false;
+            var regex = new StringBuilder();
+            var characterClass = false;
 
             regex.Append("^");
 
@@ -397,11 +395,11 @@ namespace Ganss.IO
                 yield break;
             }
 
-            int level = 0;
+            var level = 0;
             var option = new StringBuilder();
-            string prefix = "";
-            string postfix = "";
-            List<string> options = new List<string>();
+            var prefix = "";
+            var postfix = "";
+            var options = new List<string>();
 
             for (int i = 0; i < path.Length; i++)
             {
@@ -499,7 +497,7 @@ namespace Ganss.IO
             //Check for null and compare run-time types.
             if (obj == null || GetType() != obj.GetType()) return false;
 
-            Glob g = (Glob)obj;
+            var g = (Glob)obj;
             return Pattern == g.Pattern;
         }
 
@@ -533,7 +531,7 @@ namespace Ganss.IO
         internal static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source,
             Func<TSource, TKey> keySelector)
         {
-            HashSet<TKey> knownKeys = new HashSet<TKey>();
+            var knownKeys = new HashSet<TKey>();
             foreach (TSource element in source)
             {
                 if (knownKeys.Add(keySelector(element)))

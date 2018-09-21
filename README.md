@@ -17,6 +17,7 @@ Features
 * Can cancel long running match
 * Throw or continue on file system errors
 * Optionally log errors to supplied log implementation
+* Lazy tree traversal
 
 Syntax
 ------
