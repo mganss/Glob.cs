@@ -186,7 +186,8 @@ namespace Ganss.IO
 
             public bool IsMatch(string input)
             {
-                return Regex != null ? Regex.IsMatch(input) : Pattern.Equals(input, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+                if (Regex != null) return Regex.IsMatch(input);
+                return Pattern.Equals(input, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
             }
         }
 
@@ -301,7 +302,7 @@ namespace Ganss.IO
 
             if (child == "**")
             {
-                foreach (DirectoryInfoBase dir in Expand(parent, true).DistinctBy(d => d.FullName))
+                foreach (DirectoryInfoBase dir in Expand(parent, true).DistinctBy(d => d.FullName).Cast<DirectoryInfoBase>())
                 {
                     var recursiveDirectories = GetDirectories(dir).ToArray();
 
@@ -318,7 +319,7 @@ namespace Ganss.IO
 
             var childRegexes = Ungroup(child).Select(s => CreateRegexOrString(s)).ToList();
 
-            foreach (DirectoryInfoBase parentDir in Expand(parent, true).DistinctBy(d => d.FullName))
+            foreach (DirectoryInfoBase parentDir in Expand(parent, true).DistinctBy(d => d.FullName).Cast<DirectoryInfoBase>())
             {
                 IEnumerable<FileSystemInfoBase> fileSystemEntries;
 
@@ -388,8 +389,6 @@ namespace Ganss.IO
             return regex.ToString();
         }
 
-        private static readonly Regex GroupRegex = new Regex(@"{([^}]*)}");
-
         private static IEnumerable<string> Ungroup(string path)
         {
             if (!path.Contains('{'))
@@ -399,7 +398,7 @@ namespace Ganss.IO
             }
 
             int level = 0;
-            string option = "";
+            var option = new StringBuilder();
             string prefix = "";
             string postfix = "";
             List<string> options = new List<string>();
@@ -414,30 +413,30 @@ namespace Ganss.IO
                         level++;
                         if (level == 1)
                         {
-                            prefix = option;
-                            option = "";
+                            prefix = option.ToString();
+                            option.Clear();
                         }
-                        else option += c;
+                        else option.Append(c);
                         break;
                     case ',':
                         if (level == 1)
                         {
-                            options.Add(option);
-                            option = "";
+                            options.Add(option.ToString());
+                            option.Clear();
                         }
-                        else option += c;
+                        else option.Append(c);
                         break;
                     case '}':
                         level--;
                         if (level == 0)
                         {
-                            options.Add(option);
+                            options.Add(option.ToString());
                             break;
                         }
-                        else option += c;
+                        else option.Append(c);
                         break;
                     default:
-                        option += c;
+                        option.Append(c);
                         break;
                 }
 
