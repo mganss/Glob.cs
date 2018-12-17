@@ -56,7 +56,7 @@ namespace Ganss.IO.Tests
 
         IEnumerable<string> ExpandNames(string pattern, bool ignoreCase = true, bool dirOnly = false)
         {
-            return new Glob(Path.GetFullPath(FixPath(TestDir + pattern)), FileSystem) { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }.ExpandNames();
+            return new Glob(new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, FileSystem).ExpandNames(Path.GetFullPath(FixPath(TestDir + pattern)));
         }
 
         void AssertEqual(IEnumerable<string> actual, params string[] expected)
@@ -135,9 +135,9 @@ namespace Ganss.IO.Tests
         [Fact]
         public void CanCancel()
         {
-            var glob = new Glob(TestDir + @"\dir1\*", FileSystem);
+            var glob = new Glob(FileSystem);
             glob.Cancel();
-            var fs = glob.Expand().ToList();
+            var fs = glob.Expand(TestDir + @"\dir1\*").ToList();
             Assert.Empty(fs);
         }
 
@@ -145,8 +145,8 @@ namespace Ganss.IO.Tests
         public void CanLog()
         {
             var log = "";
-            var glob = new Glob(@"test", new TestFileSystem()) { IgnoreCase = true, ErrorLog = s => log += s };
-            var fs = glob.ExpandNames().ToList();
+            var glob = new Glob(new GlobOptions { IgnoreCase = true, ErrorLog = s => log += s }, new TestFileSystem());
+            var fs = glob.ExpandNames(@"test").ToList();
             Assert.False(string.IsNullOrEmpty(log));
         }
 
@@ -160,7 +160,7 @@ namespace Ganss.IO.Tests
         [Fact]
         public void CanUseUncachedRegex()
         {
-            var fs = new Glob(FixPath(TestDir + @"\dir1\*"), FileSystem) { CacheRegexes = false }.ExpandNames().ToList();
+            var fs = new Glob(new GlobOptions { CacheRegexes = false }, FileSystem).ExpandNames(FixPath(TestDir + @"\dir1\*")).ToList();
             AssertEqual(fs, @"\dir1\abc");
         }
 
@@ -174,7 +174,7 @@ namespace Ganss.IO.Tests
         [Fact]
         public void ReturnsStringAndHash()
         {
-            var glob = new Glob("abc", FileSystem);
+            var glob = new Glob(FileSystem) { Pattern = "abc" };
             Assert.Equal("abc", glob.ToString());
             Assert.Equal("abc".GetHashCode(), glob.GetHashCode());
         }
@@ -182,9 +182,9 @@ namespace Ganss.IO.Tests
         [Fact]
         public void CanCompareInstances()
         {
-            var glob = new Glob("abc", FileSystem);
+            var glob = new Glob(FileSystem) { Pattern = "abc" };
             Assert.False(glob.Equals(4711));
-            Assert.True(glob.Equals(new Glob("abc")));
+            Assert.True(glob.Equals(new Glob() { Pattern = "abc" }));
         }
 
         [Fact]
@@ -195,41 +195,54 @@ namespace Ganss.IO.Tests
                 FileInfo = new TestFileInfoFactory() { FromFileNameFunc = n => throw new ArgumentException("", "1") }
             };
 
-            var g = new Glob(TestDir + @"\>", fs) { ThrowOnError = true };
-            Assert.Throws<ArgumentException>("1", () => g.ExpandNames().ToList());
+            var g = new Glob(new GlobOptions { ThrowOnError = true }, fs);
+            Assert.Throws<ArgumentException>("1", () => g.ExpandNames(TestDir + @"\>").ToList());
 
             fs.Path = new TestPath(FileSystem) { GetDirectoryNameFunc = n => throw new ArgumentException("", "2") };
 
-            g = new Glob("*", fs);
+            g = new Glob(fs) { Pattern = "*" };
             Assert.Empty(g.ExpandNames());
-            g.ThrowOnError = true;
+            g.Options.ThrowOnError = true;
             Assert.Throws<ArgumentException>("2", () => g.ExpandNames().ToList());
 
             fs.Path = new TestPath(FileSystem) { GetDirectoryNameFunc = n => null };
             fs.DirectoryInfo = new TestDirectoryInfoFactory { FromDirectoryNameFunc = n => throw new ArgumentException("", "3") };
 
-            g.ThrowOnError = false;
+            g.Options.ThrowOnError = false;
             Assert.Empty(g.ExpandNames());
-            g.ThrowOnError = true;
+            g.Options.ThrowOnError = true;
             Assert.Throws<ArgumentException>("3", () => g.ExpandNames().ToList());
 
             fs.Path = new TestPath(FileSystem) { GetDirectoryNameFunc = n => "" };
             fs.DirectoryInfo = new TestDirectoryInfoFactory { FromDirectoryNameFunc = n => null };
             fs.Directory = new TestDirectory(FileSystem, null, "") { GetCurrentDirectoryFunc = () => throw new ArgumentException("", "4") };
 
-            g.ThrowOnError = false;
+            g.Options.ThrowOnError = false;
             Assert.Empty(g.ExpandNames());
-            g.ThrowOnError = true;
+            g.Options.ThrowOnError = true;
             Assert.Throws<ArgumentException>("4", () => g.ExpandNames().ToList());
 
             fs.Directory = new TestDirectory(FileSystem, null, "") { GetCurrentDirectoryFunc = () => "5" };
             var d = new TestDirectoryInfo(FileSystem, TestDir) { GetFileSystemInfosFunc = () => throw new ArgumentException("", "5") };
             fs.DirectoryInfo = new TestDirectoryInfoFactory { FromDirectoryNameFunc = n => d };
 
-            g.ThrowOnError = false;
+            g.Options.ThrowOnError = false;
             Assert.Empty(g.ExpandNames());
-            g.ThrowOnError = true;
+            g.Options.ThrowOnError = true;
             Assert.Throws<ArgumentException>("5", () => g.ExpandNames().ToList());
+        }
+
+        [Fact]
+        public void HonorsMaxDepth()
+        {
+            var g = new Glob(FileSystem);
+            g.Options.MaxDepth = 1;
+            g.Pattern = Path.GetFullPath(FixPath(TestDir + @"/**/file1"));
+            AssertEqual(g.ExpandNames(), @"/file1", @"/dir2/file1", @"/dir3/file1");
+            g.Options.MaxDepth = 2;
+            AssertEqual(g.ExpandNames(), @"/file1", @"/dir2/file1", @"/dir2/dir2/file1", @"/dir3/file1");
+            g.Options.MaxDepth = 0;
+            AssertEqual(g.ExpandNames(), @"/file1");
         }
     }
 }
