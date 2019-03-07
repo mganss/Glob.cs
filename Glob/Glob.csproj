@@ -13,7 +13,7 @@
     <PackageId>Glob.cs</PackageId>
     <PackageTags>glob</PackageTags>
     <PackageProjectUrl>https://github.com/mganss/Glob.cs</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/mganss/Glob.cs/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/mganss/Glob.cs</RepositoryUrl>
     <RootNamespace>Ganss.IO</RootNamespace>
