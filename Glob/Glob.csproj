@@ -3,9 +3,11 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.4;net40</TargetFrameworks>
     <Description>File system path globbing</Description>
-    <Copyright>Copyright 2013-2018 Michael Ganss</Copyright>
+    <Copyright>Copyright 2013-2019 Michael Ganss</Copyright>
     <AssemblyTitle>Glob.cs</AssemblyTitle>
-    <VersionPrefix>1.0.0-VERSION</VersionPrefix>
+    <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <PackageVersion>1.0.0</PackageVersion>
     <Authors>Michael Ganss</Authors>
     <AssemblyName>Glob</AssemblyName>
     <PackageId>Glob.cs</PackageId>
@@ -17,10 +19,15 @@
     <RootNamespace>Ganss.IO</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Glob.xml</DocumentationFile>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Abstractions" Version="2.1.0.209" />
+    <PackageReference Include="System.IO.Abstractions" Version="3.0.10" />
   </ItemGroup>
 
 </Project>
