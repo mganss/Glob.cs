@@ -9,7 +9,6 @@ environment:
 nuget:
   disable_publish_on_pr: true
 build_script:
-  - ps: (Get-Content Glob\Glob.csproj).Replace("Version>1.0.0", "Version>$env:APPVEYOR_BUILD_VERSION") | Set-Content Glob\Glob.csproj
   - dotnet restore
   - dotnet pack --include-symbols --include-source -c Release Glob
 test_script:

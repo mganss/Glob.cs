@@ -1,17 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.4;net40</TargetFrameworks>
-    <Description>File system path globbing</Description>
-    <Copyright>Copyright 2013-2019 Michael Ganss</Copyright>
+    <TargetFrameworks>netstandard1.4;netstandard2.0;net40</TargetFrameworks>
+    <Description>File system path globbing library (wildcards like in bash). Supports netstandard1.4, netstandard2.0, and net40.</Description>
+    <Copyright>Copyright 2013-$([System.DateTime]::Now.Year) Michael Ganss</Copyright>
+    <AppVeyor_Build_Version Condition="'$(APPVEYOR_BUILD_VERSION)' == ''">1.0.0</AppVeyor_Build_Version>
     <AssemblyTitle>Glob.cs</AssemblyTitle>
     <AssemblyVersion>3.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <PackageVersion>1.0.0</PackageVersion>
+    <FileVersion>$(AppVeyor_Build_Version).0</FileVersion>
+    <PackageVersion>$(AppVeyor_Build_Version)</PackageVersion>
     <Authors>Michael Ganss</Authors>
     <AssemblyName>Glob</AssemblyName>
     <PackageId>Glob.cs</PackageId>
-    <PackageTags>glob</PackageTags>
+    <PackageTags>glob globbing pattern minimatch wildcard traversal bash</PackageTags>
     <PackageProjectUrl>https://github.com/mganss/Glob.cs</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
