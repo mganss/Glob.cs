@@ -5,6 +5,7 @@ Glob.cs
 [![Build status](https://ci.appveyor.com/api/projects/status/knmq8uf073fchkty/branch/master?svg=true)](https://ci.appveyor.com/project/mganss/glob-cs/branch/master)
 [![codecov.io](https://codecov.io/github/mganss/Glob.cs/coverage.svg?branch=master)](https://codecov.io/github/mganss/Glob.cs?branch=master)
 [![netstandard1.4](https://img.shields.io/badge/netstandard-1.4-brightgreen.svg)](https://img.shields.io/badge/netstandard-1.4-brightgreen.svg)
+[![netstandard2.0](https://img.shields.io/badge/netstandard-2.0-brightgreen.svg)](https://img.shields.io/badge/netstandard-2.0-brightgreen.svg)
 [![net40](https://img.shields.io/badge/net-40-brightgreen.svg)](https://img.shields.io/badge/net-40-brightgreen.svg)
 
 
