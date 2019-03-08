@@ -143,7 +143,7 @@ namespace Ganss.IO
         /// <returns>The matched path names</returns>
         public static IEnumerable<string> ExpandNames(string pattern, bool ignoreCase = true, bool dirOnly = false, IFileSystem fileSystem = null)
         {
-            return new Glob(new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, fileSystem ?? new FileSystem()).ExpandNames(pattern);
+            return new Glob(new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, fileSystem ?? new FileSystem()) { Pattern = pattern }.ExpandNames();
         }
 
         /// <summary>
@@ -156,46 +156,20 @@ namespace Ganss.IO
         /// <returns>The matched <see cref="FileSystemInfoBase"/> objects</returns>
         public static IEnumerable<FileSystemInfoBase> Expand(string pattern, bool ignoreCase = true, bool dirOnly = false, IFileSystem fileSystem = null)
         {
-            return new Glob(new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, fileSystem ?? new FileSystem()).Expand(pattern);
-        }
-
-        /// <summary>
-        /// Performs a pattern match.
-        /// </summary>
-        /// <param name="pattern">The pattern to be matched.</param>
-        /// <returns>The matched path names</returns>
-        public IEnumerable<string> ExpandNames(string pattern)
-        {
-            return Expand(pattern, Options.DirectoriesOnly).Select(f => f.FullName);
-        }
-
-        /// <summary>
-        /// Performs a pattern match.
-        /// </summary>
-        /// <param name="pattern">The pattern to be matched.</param>
-        /// <returns>The matched <see cref="FileSystemInfo"/> objects</returns>
-        public IEnumerable<FileSystemInfoBase> Expand(string pattern)
-        {
-            return Expand(pattern, Options.DirectoriesOnly);
+            return new Glob(new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, fileSystem ?? new FileSystem()) { Pattern = pattern }.Expand();
         }
 
         /// <summary>
         /// Performs a pattern match.
         /// </summary>
         /// <returns>The matched path names</returns>
-        public IEnumerable<string> ExpandNames()
-        {
-            return ExpandNames(Pattern);
-        }
+        public IEnumerable<string> ExpandNames() => Expand(Pattern, Options.DirectoriesOnly).Select(f => f.FullName);
 
         /// <summary>
         /// Performs a pattern match.
         /// </summary>
         /// <returns>The matched <see cref="FileSystemInfo"/> objects</returns>
-        public IEnumerable<FileSystemInfoBase> Expand()
-        {
-            return Expand(Pattern);
-        }
+        public IEnumerable<FileSystemInfoBase> Expand() => Expand(Pattern, Options.DirectoriesOnly);
 
         class RegexOrString
         {
@@ -504,10 +478,7 @@ namespace Ganss.IO
         /// <returns>
         /// A <see cref="System.String" /> that represents this instance.
         /// </returns>
-        public override string ToString()
-        {
-            return Pattern;
-        }
+        public override string ToString() => Pattern;
 
         /// <summary>
         /// Returns a hash code for this instance.
@@ -515,10 +486,7 @@ namespace Ganss.IO
         /// <returns>
         /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
         /// </returns>
-        public override int GetHashCode()
-        {
-            return Pattern.GetHashCode();
-        }
+        public override int GetHashCode() => Pattern.GetHashCode();
 
         /// <summary>
         /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.

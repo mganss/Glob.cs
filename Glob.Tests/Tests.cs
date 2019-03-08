@@ -56,7 +56,8 @@ namespace Ganss.IO.Tests
 
         IEnumerable<string> ExpandNames(string pattern, bool ignoreCase = true, bool dirOnly = false)
         {
-            return new Glob(new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, FileSystem).ExpandNames(Path.GetFullPath(FixPath(TestDir + pattern)));
+            pattern = Path.GetFullPath(FixPath(TestDir + pattern));
+            return new Glob(new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, FileSystem) { Pattern = pattern }.ExpandNames();
         }
 
         void AssertEqual(IEnumerable<string> actual, params string[] expected)
@@ -135,9 +136,9 @@ namespace Ganss.IO.Tests
         [Fact]
         public void CanCancel()
         {
-            var glob = new Glob(FileSystem);
+            var glob = new Glob(FileSystem) { Pattern = TestDir + @"\dir1\*" };
             glob.Cancel();
-            var fs = glob.Expand(TestDir + @"\dir1\*").ToList();
+            var fs = glob.Expand().ToList();
             Assert.Empty(fs);
         }
 
@@ -145,8 +146,8 @@ namespace Ganss.IO.Tests
         public void CanLog()
         {
             var log = "";
-            var glob = new Glob(new GlobOptions { IgnoreCase = true, ErrorLog = s => log += s }, new TestFileSystem());
-            var fs = glob.ExpandNames(@"test").ToList();
+            var glob = new Glob(new GlobOptions { IgnoreCase = true, ErrorLog = s => log += s }, new TestFileSystem()) { Pattern = @"test" };
+            var fs = glob.ExpandNames().ToList();
             Assert.False(string.IsNullOrEmpty(log));
         }
 
@@ -160,7 +161,7 @@ namespace Ganss.IO.Tests
         [Fact]
         public void CanUseUncachedRegex()
         {
-            var fs = new Glob(new GlobOptions { CacheRegexes = false }, FileSystem).ExpandNames(FixPath(TestDir + @"\dir1\*")).ToList();
+            var fs = new Glob(new GlobOptions { CacheRegexes = false }, FileSystem) { Pattern = FixPath(TestDir + @"\dir1\*") }.ExpandNames().ToList();
             AssertEqual(fs, @"\dir1\abc");
         }
 
@@ -195,8 +196,8 @@ namespace Ganss.IO.Tests
                 FileInfo = new TestFileInfoFactory() { FromFileNameFunc = n => throw new ArgumentException("", "1") }
             };
 
-            var g = new Glob(new GlobOptions { ThrowOnError = true }, fs);
-            Assert.Throws<ArgumentException>("1", () => g.ExpandNames(TestDir + @"\>").ToList());
+            var g = new Glob(new GlobOptions { ThrowOnError = true }, fs) { Pattern = TestDir + @"\>" };
+            Assert.Throws<ArgumentException>("1", () => g.ExpandNames().ToList());
 
             fs.Path = new TestPath(FileSystem) { GetDirectoryNameFunc = n => throw new ArgumentException("", "2") };
 
