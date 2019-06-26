@@ -8,15 +8,15 @@ namespace Ganss.IO.Tests
 {
     public class TestFileSystem : IFileSystem
     {
-        public FileBase File => throw new NotImplementedException();
+        public IFile File => throw new NotImplementedException();
 
-        public DirectoryBase Directory { get; set; }
+        public IDirectory Directory { get; set; }
 
         public IFileInfoFactory FileInfo { get; set; }
 
         public IFileStreamFactory FileStream => throw new NotImplementedException();
 
-        public PathBase Path { get; set; }
+        public IPath Path { get; set; }
 
         public IDirectoryInfoFactory DirectoryInfo { get; set; }
 
@@ -27,22 +27,22 @@ namespace Ganss.IO.Tests
 
     public class TestDirectoryInfoFactory : IDirectoryInfoFactory
     {
-        public DirectoryInfoBase FromDirectoryName(string directoryName)
+        public IDirectoryInfo FromDirectoryName(string directoryName)
         {
             return FromDirectoryNameFunc(directoryName);
         }
 
-        public Func<string, DirectoryInfoBase> FromDirectoryNameFunc { get; set; }
+        public Func<string, IDirectoryInfo> FromDirectoryNameFunc { get; set; }
     }
 
     public class TestFileInfoFactory : IFileInfoFactory
     {
-        public FileInfoBase FromFileName(string fileName)
+        public IFileInfo FromFileName(string fileName)
         {
             return FromFileNameFunc(fileName);
         }
 
-        public Func<string, FileInfoBase> FromFileNameFunc { get; set; }
+        public Func<string, IFileInfo> FromFileNameFunc { get; set; }
     }
 
     public class TestPath : MockPath
@@ -76,11 +76,11 @@ namespace Ganss.IO.Tests
         public TestDirectoryInfo(IMockFileDataAccessor m, string p): base(m, p)
         { }
 
-        public override FileSystemInfoBase[] GetFileSystemInfos()
+        public override IFileSystemInfo[] GetFileSystemInfos()
         {
             return GetFileSystemInfosFunc();
         }
 
-        public Func<FileSystemInfoBase[]> GetFileSystemInfosFunc { get; set; }
+        public Func<IFileSystemInfo[]> GetFileSystemInfosFunc { get; set; }
     }
 }

@@ -5,13 +5,13 @@
     <SonarQubeExclude>true</SonarQubeExclude>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="coverlet.msbuild" Version="2.6.0">
+    <PackageReference Include="coverlet.msbuild" Version="2.6.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
-    <PackageReference Include="System.IO.Abstractions" Version="3.0.10" />
-    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="3.0.10" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.1.1" />
+    <PackageReference Include="System.IO.Abstractions" Version="6.0.11" />
+    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="6.0.11" />
     <PackageReference Include="System.Security.Permissions" Version="4.5.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">

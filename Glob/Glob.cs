@@ -153,8 +153,8 @@ namespace Ganss.IO
         /// <param name="ignoreCase">true if case should be ignored; false, otherwise.</param>
         /// <param name="dirOnly">true if only directories shoud be matched; false, otherwise.</param>
         /// <param name="fileSystem">The <see cref="IFileSystem"/> implementation to use. The default (null) is the physical file system.</param>
-        /// <returns>The matched <see cref="FileSystemInfoBase"/> objects</returns>
-        public static IEnumerable<FileSystemInfoBase> Expand(string pattern, bool ignoreCase = true, bool dirOnly = false, IFileSystem fileSystem = null)
+        /// <returns>The matched <see cref="IFileSystemInfo"/> objects</returns>
+        public static IEnumerable<IFileSystemInfo> Expand(string pattern, bool ignoreCase = true, bool dirOnly = false, IFileSystem fileSystem = null)
         {
             return new Glob(new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, fileSystem ?? new FileSystem()) { Pattern = pattern }.Expand();
         }
@@ -169,7 +169,7 @@ namespace Ganss.IO
         /// Performs a pattern match.
         /// </summary>
         /// <returns>The matched <see cref="FileSystemInfo"/> objects</returns>
-        public IEnumerable<FileSystemInfoBase> Expand() => Expand(Pattern, Options.DirectoriesOnly);
+        public IEnumerable<IFileSystemInfo> Expand() => Expand(Pattern, Options.DirectoriesOnly);
 
         class RegexOrString
         {
@@ -217,7 +217,7 @@ namespace Ganss.IO
 
         private static readonly char[] GlobCharacters = "*?[]{}".ToCharArray();
 
-        private IEnumerable<FileSystemInfoBase> Expand(string path, bool dirOnly)
+        private IEnumerable<IFileSystemInfo> Expand(string path, bool dirOnly)
         {
             if (Cancelled) yield break;
 
@@ -230,12 +230,12 @@ namespace Ganss.IO
             // but only if ignoring case because FileSystemInfo.Exists always ignores case.
             if (Options.IgnoreCase && path.IndexOfAny(GlobCharacters) < 0)
             {
-                FileSystemInfoBase fsi = null;
+                IFileSystemInfo fsi = null;
                 bool exists = false;
 
                 try
                 {
-                    fsi = dirOnly ? (FileSystemInfoBase)fileSystem.DirectoryInfo.FromDirectoryName(path) : fileSystem.FileInfo.FromFileName(path);
+                    fsi = dirOnly ? (IFileSystemInfo)fileSystem.DirectoryInfo.FromDirectoryName(path) : fileSystem.FileInfo.FromFileName(path);
                     exists = fsi.Exists;
                 }
                 catch (Exception ex)
@@ -263,7 +263,7 @@ namespace Ganss.IO
 
             if (parent == null)
             {
-                DirectoryInfoBase dir = null;
+                IDirectoryInfo dir = null;
 
                 try
                 {
@@ -311,7 +311,7 @@ namespace Ganss.IO
 
             if (child == "**")
             {
-                foreach (DirectoryInfoBase dir in Expand(parent, true).DistinctBy(d => d.FullName).Cast<DirectoryInfoBase>())
+                foreach (IDirectoryInfo dir in Expand(parent, true).DistinctBy(d => d.FullName).Cast<IDirectoryInfo>())
                 {
                     yield return dir;
 
@@ -326,9 +326,9 @@ namespace Ganss.IO
 
             var childRegexes = Ungroup(child).Select(s => CreateRegexOrString(s)).ToList();
 
-            foreach (DirectoryInfoBase parentDir in Expand(parent, true).DistinctBy(d => d.FullName).Cast<DirectoryInfoBase>())
+            foreach (IDirectoryInfo parentDir in Expand(parent, true).DistinctBy(d => d.FullName).Cast<IDirectoryInfo>())
             {
-                IEnumerable<FileSystemInfoBase> fileSystemEntries;
+                IEnumerable<IFileSystemInfo> fileSystemEntries;
 
                 try
                 {
@@ -504,9 +504,9 @@ namespace Ganss.IO
             return Pattern == g.Pattern;
         }
 
-        private static IEnumerable<DirectoryInfoBase> GetDirectories(DirectoryInfoBase root, int level, int maxDepth)
+        private static IEnumerable<IDirectoryInfo> GetDirectories(IDirectoryInfo root, int level, int maxDepth)
         {
-            IEnumerable<DirectoryInfoBase> subDirs = null;
+            IEnumerable<IDirectoryInfo> subDirs = null;
 
             if (maxDepth >= 0 && level > maxDepth)
                 yield break;
@@ -520,7 +520,7 @@ namespace Ganss.IO
                 yield break;
             }
 
-            foreach (DirectoryInfoBase dirInfo in subDirs)
+            foreach (IDirectoryInfo dirInfo in subDirs)
             {
                 yield return dirInfo;
 
