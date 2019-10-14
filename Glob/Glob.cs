@@ -149,6 +149,12 @@ namespace Ganss.IO
         /// <summary>
         /// Performs a pattern match.
         /// </summary>
+        /// <returns>The matched path names</returns>
+        public IEnumerable<string> ExpandNames() => Expand(Pattern, Options.DirectoriesOnly).Select(f => f.FullName);
+
+        /// <summary>
+        /// Performs a pattern match.
+        /// </summary>
         /// <param name="pattern">The pattern to be matched.</param>
         /// <param name="ignoreCase">true if case should be ignored; false, otherwise.</param>
         /// <param name="dirOnly">true if only directories shoud be matched; false, otherwise.</param>
@@ -162,60 +168,8 @@ namespace Ganss.IO
         /// <summary>
         /// Performs a pattern match.
         /// </summary>
-        /// <returns>The matched path names</returns>
-        public IEnumerable<string> ExpandNames() => Expand(Pattern, Options.DirectoriesOnly).Select(f => f.FullName);
-
-        /// <summary>
-        /// Performs a pattern match.
-        /// </summary>
         /// <returns>The matched <see cref="FileSystemInfo"/> objects</returns>
         public IEnumerable<IFileSystemInfo> Expand() => Expand(Pattern, Options.DirectoriesOnly);
-
-        class RegexOrString
-        {
-            public Regex Regex { get; set; }
-            public string Pattern { get; set; }
-            public bool IgnoreCase { get; set; }
-
-            public RegexOrString(string pattern, string rawString, bool ignoreCase, bool compileRegex)
-            {
-                IgnoreCase = ignoreCase;
-
-                try
-                {
-                    Regex = new Regex(pattern, RegexOptions.CultureInvariant | (ignoreCase ? RegexOptions.IgnoreCase : 0)
-                        | (compileRegex ? RegexOptions.Compiled : 0));
-                    Pattern = pattern;
-                }
-                catch
-                {
-                    Pattern = rawString;
-                }
-            }
-
-            public bool IsMatch(string input)
-            {
-                if (Regex != null) return Regex.IsMatch(input);
-                return Pattern.Equals(input, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-            }
-        }
-
-        private static ConcurrentDictionary<string, RegexOrString> RegexOrStringCache = new ConcurrentDictionary<string, RegexOrString>();
-
-        private RegexOrString CreateRegexOrString(string pattern)
-        {
-            if (!Options.CacheRegexes) return new RegexOrString(GlobToRegex(pattern), pattern, Options.IgnoreCase, compileRegex: false);
-
-            if (!RegexOrStringCache.TryGetValue(pattern, out RegexOrString regexOrString))
-            {
-                regexOrString = new RegexOrString(GlobToRegex(pattern), pattern, Options.IgnoreCase, compileRegex: true);
-                RegexOrStringCache[pattern] = regexOrString;
-            }
-
-            return regexOrString;
-        }
-
-        private static readonly char[] GlobCharacters = "*?[]{}".ToCharArray();
 
         private IEnumerable<IFileSystemInfo> Expand(string path, bool dirOnly)
         {
@@ -353,6 +307,52 @@ namespace Ganss.IO
                 if (childRegexes.Any(r => r.Pattern == @"^\.$")) yield return parentDir;
             }
         }
+
+        class RegexOrString
+        {
+            public Regex Regex { get; set; }
+            public string Pattern { get; set; }
+            public bool IgnoreCase { get; set; }
+
+            public RegexOrString(string pattern, string rawString, bool ignoreCase, bool compileRegex)
+            {
+                IgnoreCase = ignoreCase;
+
+                try
+                {
+                    Regex = new Regex(pattern, RegexOptions.CultureInvariant | (ignoreCase ? RegexOptions.IgnoreCase : 0)
+                        | (compileRegex ? RegexOptions.Compiled : 0));
+                    Pattern = pattern;
+                }
+                catch
+                {
+                    Pattern = rawString;
+                }
+            }
+
+            public bool IsMatch(string input)
+            {
+                if (Regex != null) return Regex.IsMatch(input);
+                return Pattern.Equals(input, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+            }
+        }
+
+        private static ConcurrentDictionary<string, RegexOrString> RegexOrStringCache = new ConcurrentDictionary<string, RegexOrString>();
+
+        private RegexOrString CreateRegexOrString(string pattern)
+        {
+            if (!Options.CacheRegexes) return new RegexOrString(GlobToRegex(pattern), pattern, Options.IgnoreCase, compileRegex: false);
+
+            if (!RegexOrStringCache.TryGetValue(pattern, out RegexOrString regexOrString))
+            {
+                regexOrString = new RegexOrString(GlobToRegex(pattern), pattern, Options.IgnoreCase, compileRegex: true);
+                RegexOrStringCache[pattern] = regexOrString;
+            }
+
+            return regexOrString;
+        }
+
+        private static readonly char[] GlobCharacters = "*?[]{}".ToCharArray();
 
         private static HashSet<char> RegexSpecialChars = new HashSet<char>(new[] { '[', '\\', '^', '$', '.', '|', '?', '*', '+', '(', ')' });
 
