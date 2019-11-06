@@ -189,7 +189,8 @@ namespace Ganss.IO
 
                 try
                 {
-                    fsi = dirOnly ? (IFileSystemInfo)fileSystem.DirectoryInfo.FromDirectoryName(path) : fileSystem.FileInfo.FromFileName(path);
+                    fsi = (IFileSystemInfo)fileSystem.DirectoryInfo.FromDirectoryName(path);
+                    if (!fsi.Exists && !dirOnly) fsi = fileSystem.FileInfo.FromFileName(path);
                     exists = fsi.Exists;
                 }
                 catch (Exception ex)
@@ -337,7 +338,7 @@ namespace Ganss.IO
             }
         }
 
-        private static ConcurrentDictionary<string, RegexOrString> RegexOrStringCache = new ConcurrentDictionary<string, RegexOrString>();
+        private static readonly ConcurrentDictionary<string, RegexOrString> RegexOrStringCache = new ConcurrentDictionary<string, RegexOrString>();
 
         private RegexOrString CreateRegexOrString(string pattern)
         {
@@ -354,7 +355,7 @@ namespace Ganss.IO
 
         private static readonly char[] GlobCharacters = "*?[]{}".ToCharArray();
 
-        private static HashSet<char> RegexSpecialChars = new HashSet<char>(new[] { '[', '\\', '^', '$', '.', '|', '?', '*', '+', '(', ')' });
+        private static readonly HashSet<char> RegexSpecialChars = new HashSet<char>(new[] { '[', '\\', '^', '$', '.', '|', '?', '*', '+', '(', ')' });
 
         private static string GlobToRegex(string glob)
         {
@@ -506,7 +507,7 @@ namespace Ganss.IO
 
         private static IEnumerable<IDirectoryInfo> GetDirectories(IDirectoryInfo root, int level, int maxDepth)
         {
-            IEnumerable<IDirectoryInfo> subDirs = null;
+            IEnumerable<IDirectoryInfo> subDirs;
 
             if (maxDepth >= 0 && level > maxDepth)
                 yield break;

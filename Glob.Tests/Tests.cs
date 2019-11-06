@@ -193,7 +193,7 @@ namespace Ganss.IO.Tests
         {
             var fs = new TestFileSystem
             {
-                FileInfo = new TestFileInfoFactory() { FromFileNameFunc = n => throw new ArgumentException("", "1") }
+                DirectoryInfo = new TestDirectoryInfoFactory{ FromDirectoryNameFunc = n => throw new ArgumentException("", "1") }
             };
 
             var g = new Glob(new GlobOptions { ThrowOnError = true }, fs) { Pattern = TestDir + @"\>" };
@@ -244,6 +244,12 @@ namespace Ganss.IO.Tests
             AssertEqual(g.ExpandNames(), @"/file1", @"/dir2/file1", @"/dir2/dir2/file1", @"/dir3/file1");
             g.Options.MaxDepth = 0;
             AssertEqual(g.ExpandNames(), @"/file1");
+        }
+
+        [Fact]
+        public void ExistingDirOnly()
+        {
+            AssertEqual(ExpandNames(@"/dir1", dirOnly: false), @"/dir1");
         }
     }
 }
