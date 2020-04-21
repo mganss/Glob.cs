@@ -9,7 +9,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.0" />
     <PackageReference Include="System.IO.Abstractions" Version="10.0.9" />
     <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="10.0.9" />
     <PackageReference Include="System.Security.Permissions" Version="4.7.0" />
