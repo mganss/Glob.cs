@@ -6,6 +6,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Collections.Concurrent;
 using System.IO.Abstractions;
+using System.Security;
 
 namespace Ganss.IO
 {
@@ -234,7 +235,7 @@ namespace Ganss.IO
                 yield break;
             }
 
-            if (parent == "")
+            if (parent.Length == 0)
             {
                 try
                 {
@@ -325,7 +326,7 @@ namespace Ganss.IO
                         | (compileRegex ? RegexOptions.Compiled : 0));
                     Pattern = pattern;
                 }
-                catch
+                catch (Exception ex) when (ex is ArgumentException || ex is ArgumentNullException || ex is ArgumentOutOfRangeException)
                 {
                     Pattern = rawString;
                 }
@@ -516,7 +517,7 @@ namespace Ganss.IO
             {
                 subDirs = root.EnumerateDirectories();
             }
-            catch (Exception)
+            catch (Exception ex) when (ex is DirectoryNotFoundException || ex is SecurityException)
             {
                 yield break;
             }
