@@ -36,7 +36,7 @@
 
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Abstractions" Version="13.2.25" />
+    <PackageReference Include="System.IO.Abstractions" Version="13.2.28" />
   </ItemGroup>
 
 </Project>
