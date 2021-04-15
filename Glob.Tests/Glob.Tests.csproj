@@ -10,7 +10,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
-    <PackageReference Include="System.IO.Abstractions" Version="13.2.28" />
+    <PackageReference Include="System.IO.Abstractions" Version="13.2.29" />
     <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="13.2.28" />
     <PackageReference Include="System.Security.Permissions" Version="5.0.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
