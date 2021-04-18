@@ -31,12 +31,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
-  </ItemGroup>
-
-
-  <ItemGroup>
+    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="13.2.29" />
     <PackageReference Include="System.IO.Abstractions" Version="13.2.29" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Concurrent;
 using System.IO.Abstractions;
 using System.Security;
+using System.IO.Abstractions.TestingHelpers;
 
 namespace Ganss.IO
 {
@@ -98,7 +99,7 @@ namespace Ganss.IO
             Options.ErrorLog?.Invoke(string.Format(s, args));
         }
 
-        readonly IFileSystem fileSystem;
+        readonly IFileSystem _fileSystem;
 
         /// <summary>
         /// Creates a new instance.
@@ -110,8 +111,34 @@ namespace Ganss.IO
         /// <summary>
         /// Creates a new instance.
         /// </summary>
+        /// <param name="pattern">The pattern to match.</param>
+        public Glob(string pattern) : this(pattern, new GlobOptions(), new FileSystem())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance.
+        /// </summary>
+        /// <param name="pattern">The pattern to match.</param>
+        /// <param name="options">The options that define glob expansion behavior.</param>
+        public Glob(string pattern, GlobOptions options) : this(pattern, options, new FileSystem())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance.
+        /// </summary>
+        /// <param name="pattern">The pattern to match.</param>
         /// <param name="fileSystem">The <see cref="IFileSystem"/> implementation to use.</param>
-        public Glob(IFileSystem fileSystem): this(new GlobOptions(), fileSystem)
+        public Glob(string pattern, IFileSystem fileSystem) : this(pattern, new GlobOptions(), fileSystem)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance.
+        /// </summary>
+        /// <param name="fileSystem">The <see cref="IFileSystem"/> implementation to use.</param>
+        public Glob(IFileSystem fileSystem) : this(new GlobOptions(), fileSystem)
         {
         }
 
@@ -128,10 +155,54 @@ namespace Ganss.IO
         /// </summary>
         /// <param name="options">The options that define glob expansion behavior.</param>
         /// <param name="fileSystem">The <see cref="IFileSystem"/> implementation to use.</param>
-        public Glob(GlobOptions options, IFileSystem fileSystem)
+        public Glob(GlobOptions options, IFileSystem fileSystem): this(null, options, fileSystem)
         {
+        }
+
+        /// <summary>
+        /// Creates a new instance.
+        /// </summary>
+        /// <param name="pattern">The pattern to match.</param>
+        /// <param name="options">The options that define glob expansion behavior.</param>
+        /// <param name="fileSystem">The <see cref="IFileSystem"/> implementation to use.</param>
+        public Glob(string pattern, GlobOptions options, IFileSystem fileSystem)
+        {
+            Pattern = pattern;
             Options = options;
-            this.fileSystem = fileSystem;
+            this._fileSystem = fileSystem;
+        }
+
+        /// <summary>
+        /// Determines whether the specified path matches the pattern.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified path matches; otherwise, <c>false</c>.
+        /// </returns>
+        public bool IsMatch(string path)
+        {
+            var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                [path] = new MockFileData("")
+            });
+            var isMatch = ExpandInternal(Pattern, false, mockFileSystem).Any();
+
+            return isMatch;
+        }
+
+        /// <summary>
+        /// Determines whether the specified path matches the pattern.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <param name="pattern">The pattern to be matched.</param>
+        /// <param name="ignoreCase">true if case should be ignored; false, otherwise.</param>
+        /// <param name="dirOnly">true if only directories shoud be matched; false, otherwise.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified path matches; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsMatch(string pattern, string path, bool ignoreCase = true, bool dirOnly = false)
+        {
+            return new Glob(pattern, new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, fileSystem: null ).IsMatch(path);
         }
 
         /// <summary>
@@ -151,7 +222,7 @@ namespace Ganss.IO
         /// Performs a pattern match.
         /// </summary>
         /// <returns>The matched path names</returns>
-        public IEnumerable<string> ExpandNames() => Expand(Pattern, Options.DirectoriesOnly).Select(f => f.FullName);
+        public IEnumerable<string> ExpandNames() => ExpandInternal(Pattern, Options.DirectoriesOnly, _fileSystem).Select(f => f.FullName);
 
         /// <summary>
         /// Performs a pattern match.
@@ -170,9 +241,9 @@ namespace Ganss.IO
         /// Performs a pattern match.
         /// </summary>
         /// <returns>The matched <see cref="FileSystemInfo"/> objects</returns>
-        public IEnumerable<IFileSystemInfo> Expand() => Expand(Pattern, Options.DirectoriesOnly);
+        public IEnumerable<IFileSystemInfo> Expand() => ExpandInternal(Pattern, Options.DirectoriesOnly, _fileSystem);
 
-        private IEnumerable<IFileSystemInfo> Expand(string path, bool dirOnly)
+        private IEnumerable<IFileSystemInfo> ExpandInternal(string path, bool dirOnly, IFileSystem fileSystem)
         {
             if (Cancelled) yield break;
 
@@ -256,7 +327,7 @@ namespace Ganss.IO
             {
                 foreach (var group in Ungroup(path))
                 {
-                    foreach (var item in Expand(group, dirOnly))
+                    foreach (var item in ExpandInternal(group, dirOnly, fileSystem))
                     {
                         yield return item;
                     }
@@ -267,7 +338,7 @@ namespace Ganss.IO
 
             if (child == "**")
             {
-                foreach (IDirectoryInfo dir in Expand(parent, true).DistinctBy(d => d.FullName).Cast<IDirectoryInfo>())
+                foreach (IDirectoryInfo dir in ExpandInternal(parent, true, fileSystem).DistinctBy(d => d.FullName).Cast<IDirectoryInfo>())
                 {
                     yield return dir;
 
@@ -282,7 +353,7 @@ namespace Ganss.IO
 
             var childRegexes = Ungroup(child).Select(s => CreateRegexOrString(s)).ToList();
 
-            foreach (IDirectoryInfo parentDir in Expand(parent, true).DistinctBy(d => d.FullName).Cast<IDirectoryInfo>())
+            foreach (IDirectoryInfo parentDir in ExpandInternal(parent, true, fileSystem).DistinctBy(d => d.FullName).Cast<IDirectoryInfo>())
             {
                 IEnumerable<IFileSystemInfo> fileSystemEntries;
 
@@ -339,16 +410,19 @@ namespace Ganss.IO
             }
         }
 
-        private static readonly ConcurrentDictionary<string, RegexOrString> RegexOrStringCache = new ConcurrentDictionary<string, RegexOrString>();
+        private static readonly ConcurrentDictionary<string, RegexOrString> RegexOrStringCache =
+            new ConcurrentDictionary<string, RegexOrString>(StringComparer.Ordinal);
 
         private RegexOrString CreateRegexOrString(string pattern)
         {
             if (!Options.CacheRegexes) return new RegexOrString(GlobToRegex(pattern), pattern, Options.IgnoreCase, compileRegex: false);
 
-            if (!RegexOrStringCache.TryGetValue(pattern, out RegexOrString regexOrString))
+            var cacheKey = pattern + (Options.IgnoreCase ? "/i" : "/c");
+
+            if (!RegexOrStringCache.TryGetValue(cacheKey, out RegexOrString regexOrString))
             {
                 regexOrString = new RegexOrString(GlobToRegex(pattern), pattern, Options.IgnoreCase, compileRegex: true);
-                RegexOrStringCache[pattern] = regexOrString;
+                RegexOrStringCache[cacheKey] = regexOrString;
             }
 
             return regexOrString;

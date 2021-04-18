@@ -11,13 +11,13 @@ using System.IO.Abstractions.TestingHelpers;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 
-#pragma warning disable 1591
 namespace Ganss.IO.Tests
 {
     public class Tests
     {
         public MockFileSystem FileSystem { get; set; }
-        string TestDir => Path.GetFullPath(FixPath("/test"));
+
+        static string TestDir => Path.GetFullPath(FixPath("/test"));
 
         public Tests()
         {
@@ -49,7 +49,7 @@ namespace Ganss.IO.Tests
             FileSystem = fileSystem;
         }
 
-        private string FixPath(string v)
+        private static string FixPath(string v)
         {
             return Regex.Replace(v, @"[/\\]", Path.DirectorySeparatorChar.ToString());
         }
@@ -60,7 +60,7 @@ namespace Ganss.IO.Tests
             return new Glob(new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, FileSystem) { Pattern = pattern }.ExpandNames();
         }
 
-        void AssertEqual(IEnumerable<string> actual, params string[] expected)
+        static void AssertEqual(IEnumerable<string> actual, params string[] expected)
         {
             var exp = expected.Select(f => Path.GetFullPath(FixPath(TestDir + f))).ToList();
             var act = actual.ToList();
@@ -251,6 +251,67 @@ namespace Ganss.IO.Tests
         {
             AssertEqual(ExpandNames(@"/dir1", dirOnly: false), @"/dir1");
         }
+
+        [Fact]
+        public void CanMatch()
+        {
+            var g = new Glob("**/dir1/dir2/file*");
+
+            var match = g.IsMatch("c:/dir0/dir1/dir2/file");
+            Assert.True(match);
+
+            match = g.IsMatch("c:/dir1/dir2/xyz");
+            Assert.False(match);
+
+            match = g.IsMatch("/a/b/c/dir1/dir2/file.txt");
+            Assert.True(match);
+
+            match = g.IsMatch(@"c:\dir1\dir2\file.txt");
+            Assert.True(match);
+
+            match = g.IsMatch("dir0/dir1/dir2/file");
+            Assert.True(match);
+
+            match = g.IsMatch("dir0/dir1/dir2/xyz");
+            Assert.False(match);
+
+            g.Pattern = "/dir{1,2}/file_[abc].txt";
+
+            match = g.IsMatch("/dir1/file_a.txt");
+            Assert.True(match);
+
+            match = g.IsMatch("/dir2/file_x.txt");
+            Assert.False(match);
+        }
+        
+        [Fact]
+        public void CanSwitchCaseSensitivity()
+        {
+            var match = Glob.IsMatch("/d*r/file*", "/dir/File");
+            Assert.True(match);
+
+            match = Glob.IsMatch("/d*r/file*", "/dir/File", ignoreCase: false);
+            Assert.False(match);
+        }
+
+        [Fact]
+        public void CanUseConstructorOverloads()
+        {
+            var g = new Glob("f*", new GlobOptions { IgnoreCase = false });
+            Assert.True(g.IsMatch("file"));
+            Assert.False(g.IsMatch("File"));
+            Assert.False(g.IsMatch("xyz"));
+
+            g = new Glob(FixPath(TestDir + "/f*"), FileSystem);
+            AssertEqual(g.ExpandNames(), @"/file1");
+
+            g = new Glob(new GlobOptions { IgnoreCase = false })
+            {
+                Pattern = "f*"
+            };
+            Assert.True(g.IsMatch("file"));
+            Assert.False(g.IsMatch("File"));
+            Assert.False(g.IsMatch("xyz"));
+        }
     }
 }
-#pragma warning restore 1591
