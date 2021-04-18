@@ -19,7 +19,7 @@ namespace Ganss.IO
         /// <summary>
         /// Gets or sets a value indicating an action to be performed when an error occurs during pattern matching.
         /// </summary>
-        public Action<string> ErrorLog { get; set; }
+        public Action<string>? ErrorLog { get; set; }
         /// <summary>
         /// Gets or sets a value indicating whether exceptions that occur during matching should be rethrown. Default is false.
         /// </summary>
@@ -155,8 +155,11 @@ namespace Ganss.IO
         /// </summary>
         /// <param name="options">The options that define glob expansion behavior.</param>
         /// <param name="fileSystem">The <see cref="IFileSystem"/> implementation to use.</param>
-        public Glob(GlobOptions options, IFileSystem fileSystem): this(null, options, fileSystem)
+        public Glob(GlobOptions options, IFileSystem fileSystem)
         {
+            Pattern = "";
+            Options = options;
+            this._fileSystem = fileSystem;
         }
 
         /// <summary>
@@ -202,7 +205,7 @@ namespace Ganss.IO
         /// </returns>
         public static bool IsMatch(string pattern, string path, bool ignoreCase = true, bool dirOnly = false)
         {
-            return new Glob(pattern, new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, fileSystem: null ).IsMatch(path);
+            return new Glob(pattern, new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }).IsMatch(path);
         }
 
         /// <summary>
@@ -213,7 +216,7 @@ namespace Ganss.IO
         /// <param name="dirOnly">true if only directories shoud be matched; false, otherwise.</param>
         /// <param name="fileSystem">The <see cref="IFileSystem"/> implementation to use. The default (null) is the physical file system.</param>
         /// <returns>The matched path names</returns>
-        public static IEnumerable<string> ExpandNames(string pattern, bool ignoreCase = true, bool dirOnly = false, IFileSystem fileSystem = null)
+        public static IEnumerable<string> ExpandNames(string pattern, bool ignoreCase = true, bool dirOnly = false, IFileSystem? fileSystem = null)
         {
             return new Glob(new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, fileSystem ?? new FileSystem()) { Pattern = pattern }.ExpandNames();
         }
@@ -232,7 +235,7 @@ namespace Ganss.IO
         /// <param name="dirOnly">true if only directories shoud be matched; false, otherwise.</param>
         /// <param name="fileSystem">The <see cref="IFileSystem"/> implementation to use. The default (null) is the physical file system.</param>
         /// <returns>The matched <see cref="IFileSystemInfo"/> objects</returns>
-        public static IEnumerable<IFileSystemInfo> Expand(string pattern, bool ignoreCase = true, bool dirOnly = false, IFileSystem fileSystem = null)
+        public static IEnumerable<IFileSystemInfo> Expand(string pattern, bool ignoreCase = true, bool dirOnly = false, IFileSystem? fileSystem = null)
         {
             return new Glob(new GlobOptions { IgnoreCase = ignoreCase, DirectoriesOnly = dirOnly }, fileSystem ?? new FileSystem()) { Pattern = pattern }.Expand();
         }
@@ -256,7 +259,7 @@ namespace Ganss.IO
             // but only if ignoring case because FileSystemInfo.Exists always ignores case.
             if (Options.IgnoreCase && path.IndexOfAny(GlobCharacters) < 0)
             {
-                IFileSystemInfo fsi = null;
+                IFileSystemInfo? fsi = null;
                 bool exists = false;
 
                 try
@@ -271,11 +274,11 @@ namespace Ganss.IO
                     if (Options.ThrowOnError) throw;
                 }
 
-                if (exists) yield return fsi;
+                if (fsi != null && exists) yield return fsi;
                 yield break;
             }
 
-            string parent = null;
+            string parent;
 
             try
             {
@@ -290,7 +293,7 @@ namespace Ganss.IO
 
             if (parent == null)
             {
-                IDirectoryInfo dir = null;
+                IDirectoryInfo? dir = null;
 
                 try
                 {
@@ -383,7 +386,7 @@ namespace Ganss.IO
 
         class RegexOrString
         {
-            public Regex Regex { get; set; }
+            public Regex? Regex { get; set; }
             public string Pattern { get; set; }
             public bool IgnoreCase { get; set; }
 
@@ -411,7 +414,7 @@ namespace Ganss.IO
         }
 
         private static readonly ConcurrentDictionary<string, RegexOrString> RegexOrStringCache =
-            new ConcurrentDictionary<string, RegexOrString>(StringComparer.Ordinal);
+            new(StringComparer.Ordinal);
 
         private RegexOrString CreateRegexOrString(string pattern)
         {
@@ -430,7 +433,7 @@ namespace Ganss.IO
 
         private static readonly char[] GlobCharacters = "*?[]{}".ToCharArray();
 
-        private static readonly HashSet<char> RegexSpecialChars = new HashSet<char>(new[] { '[', '\\', '^', '$', '.', '|', '?', '*', '+', '(', ')' });
+        private static readonly HashSet<char> RegexSpecialChars = new(new[] { '[', '\\', '^', '$', '.', '|', '?', '*', '+', '(', ')' });
 
         private static string GlobToRegex(string glob)
         {

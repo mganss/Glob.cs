@@ -81,6 +81,7 @@ namespace Ganss.IO.Tests
             AssertEqual(ExpandNames(@"/dir3/[g-z]*"), @"/dir3/xyz");
             AssertEqual(ExpandNames(@"/[dir]"), @"/d");
             AssertEqual(ExpandNames(@"/**/d"), @"/d");
+            AssertEqual(ExpandNames(""), "");
         }
 
         [Fact]
