@@ -371,12 +371,9 @@ namespace Ganss.IO
                     continue;
                 }
 
-                foreach (var fileSystemEntry in fileSystemEntries)
+                foreach (var fileSystemEntry in fileSystemEntries.Where(e => childRegexes.Any(r => r.IsMatch(e.Name))))
                 {
-                    if (childRegexes.Any(r => r.IsMatch(fileSystemEntry.Name)))
-                    {
-                        yield return fileSystemEntry;
-                    }
+                    yield return fileSystemEntry;
                 }
 
                 if (childRegexes.Any(r => r.Pattern == @"^\.\.$")) yield return parentDir.Parent ?? parentDir;
@@ -617,12 +614,9 @@ namespace Ganss.IO
             Func<TSource, TKey> keySelector)
         {
             var knownKeys = new HashSet<TKey>();
-            foreach (TSource element in source)
+            foreach (TSource element in source.Where(e => knownKeys.Add(keySelector(e))))
             {
-                if (knownKeys.Add(keySelector(element)))
-                {
-                    yield return element;
-                }
+                yield return element;
             }
         }
     }
