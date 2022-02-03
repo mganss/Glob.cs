@@ -33,7 +33,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="16.1.7" />
+    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="16.1.9" />
     <PackageReference Include="System.IO.Abstractions" Version="16.1.9" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
