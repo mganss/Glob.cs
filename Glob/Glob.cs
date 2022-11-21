@@ -264,8 +264,8 @@ namespace Ganss.IO
 
                 try
                 {
-                    fsi = (IFileSystemInfo)fileSystem.DirectoryInfo.FromDirectoryName(path);
-                    if (!fsi.Exists && !dirOnly) fsi = fileSystem.FileInfo.FromFileName(path);
+                    fsi = (IFileSystemInfo)fileSystem.DirectoryInfo.New(path);
+                    if (!fsi.Exists && !dirOnly) fsi = fileSystem.FileInfo.New(path);
                     exists = fsi.Exists;
                 }
                 catch (Exception ex)
@@ -278,7 +278,7 @@ namespace Ganss.IO
                 yield break;
             }
 
-            string parent;
+            string? parent;
 
             try
             {
@@ -297,7 +297,7 @@ namespace Ganss.IO
 
                 try
                 {
-                    dir = fileSystem.DirectoryInfo.FromDirectoryName(path);
+                    dir = fileSystem.DirectoryInfo.New(path);
                 }
                 catch (Exception ex)
                 {

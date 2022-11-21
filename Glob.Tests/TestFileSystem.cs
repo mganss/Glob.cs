@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Text;
@@ -32,7 +34,20 @@ namespace Ganss.IO.Tests
             return FromDirectoryNameFunc(directoryName);
         }
 
+        public IDirectoryInfo New(string path)
+        {
+            return FromDirectoryNameFunc(path);
+        }
+
+        [return: NotNullIfNotNull("directoryInfo")]
+        public IDirectoryInfo Wrap(DirectoryInfo directoryInfo)
+        {
+            throw new NotImplementedException();
+        }
+
         public Func<string, IDirectoryInfo> FromDirectoryNameFunc { get; set; }
+
+        public IFileSystem FileSystem => throw new NotImplementedException();
     }
 
     public class TestFileInfoFactory : IFileInfoFactory
@@ -42,7 +57,20 @@ namespace Ganss.IO.Tests
             return FromFileNameFunc(fileName);
         }
 
+        public IFileInfo New(string fileName)
+        {
+            return FromFileNameFunc(fileName);
+        }
+
+        [return: NotNullIfNotNull("fileInfo")]
+        public IFileInfo Wrap(FileInfo fileInfo)
+        {
+            throw new NotImplementedException();
+        }
+
         public Func<string, IFileInfo> FromFileNameFunc { get; set; }
+
+        public IFileSystem FileSystem => throw new NotImplementedException();
     }
 
     public class TestPath : MockPath
