@@ -387,6 +387,8 @@ namespace Ganss.IO
             public string Pattern { get; set; }
             public bool IgnoreCase { get; set; }
 
+            static readonly TimeSpan matchTimeout = TimeSpan.FromMilliseconds(1000);
+
             public RegexOrString(string pattern, string rawString, bool ignoreCase, bool compileRegex)
             {
                 IgnoreCase = ignoreCase;
@@ -394,7 +396,7 @@ namespace Ganss.IO
                 try
                 {
                     Regex = new Regex(pattern, RegexOptions.CultureInvariant | (ignoreCase ? RegexOptions.IgnoreCase : 0)
-                        | (compileRegex ? RegexOptions.Compiled : 0));
+                        | (compileRegex ? RegexOptions.Compiled : 0), matchTimeout);
                     Pattern = pattern;
                 }
                 catch (Exception ex) when (ex is ArgumentException || ex is ArgumentNullException || ex is ArgumentOutOfRangeException)
