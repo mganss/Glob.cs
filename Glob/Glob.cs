@@ -371,13 +371,13 @@ namespace Ganss.IO
                     continue;
                 }
 
-                foreach (var fileSystemEntry in fileSystemEntries.Where(e => childRegexes.Any(r => r.IsMatch(e.Name))))
+                foreach (var fileSystemEntry in fileSystemEntries.Where(e => childRegexes.Exists(r => r.IsMatch(e.Name))))
                 {
                     yield return fileSystemEntry;
                 }
 
-                if (childRegexes.Any(r => r.Pattern == @"^\.\.$")) yield return parentDir.Parent ?? parentDir;
-                if (childRegexes.Any(r => r.Pattern == @"^\.$")) yield return parentDir;
+                if (childRegexes.Exists(r => r.Pattern == @"^\.\.$")) yield return parentDir.Parent ?? parentDir;
+                if (childRegexes.Exists(r => r.Pattern == @"^\.$")) yield return parentDir;
             }
         }
 
