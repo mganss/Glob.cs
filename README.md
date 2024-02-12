@@ -8,7 +8,7 @@ Glob.cs
 [![net461](https://img.shields.io/badge/net-461-brightgreen.svg)](https://img.shields.io/badge/net-461-brightgreen.svg)
 
 
-Single-source-file path <a href="http://en.wikipedia.org/wiki/Glob_(programming)">globbing</a> for .NET (netstandard2.0 and net461).
+Single-source-file path [globbing](http://en.wikipedia.org/wiki/Glob_(programming)) for .NET (netstandard2.0 and net461).
 
 Features
 --------
