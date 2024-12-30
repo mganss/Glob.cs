@@ -25,6 +25,8 @@ namespace Ganss.IO.Tests
         public IDriveInfoFactory DriveInfo => throw new NotImplementedException();
 
         public IFileSystemWatcherFactory FileSystemWatcher => throw new NotImplementedException();
+
+        public IFileVersionInfoFactory FileVersionInfo => throw new NotImplementedException();
     }
 
     public class TestDirectoryInfoFactory : IDirectoryInfoFactory
