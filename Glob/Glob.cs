@@ -432,7 +432,7 @@ namespace Ganss.IO
 
         private static readonly char[] GlobCharacters = "*?[]{}".ToCharArray();
 
-        private static readonly HashSet<char> RegexSpecialChars = new(new[] { '[', '\\', '^', '$', '.', '|', '?', '*', '+', '(', ')' });
+        private static readonly HashSet<char> RegexSpecialChars = new(['[', '\\', '^', '$', '.', '|', '?', '*', '+', '(', ')']);
 
         private static string GlobToRegex(string glob)
         {

@@ -41,7 +41,7 @@ namespace Ganss.IO.Tests
             return FromDirectoryNameFunc(path);
         }
 
-        [return: NotNullIfNotNull("directoryInfo")]
+        [return: NotNullIfNotNull(nameof(directoryInfo))]
         public IDirectoryInfo Wrap(DirectoryInfo directoryInfo)
         {
             throw new NotImplementedException();
@@ -64,7 +64,7 @@ namespace Ganss.IO.Tests
             return FromFileNameFunc(fileName);
         }
 
-        [return: NotNullIfNotNull("fileInfo")]
+        [return: NotNullIfNotNull(nameof(fileInfo))]
         public IFileInfo Wrap(FileInfo fileInfo)
         {
             throw new NotImplementedException();
@@ -75,11 +75,8 @@ namespace Ganss.IO.Tests
         public IFileSystem FileSystem => throw new NotImplementedException();
     }
 
-    public class TestPath : MockPath
+    public class TestPath(IMockFileDataAccessor m) : MockPath(m)
     {
-        public TestPath(IMockFileDataAccessor m) : base(m)
-        { }
-
         public override string GetDirectoryName(string path)
         {
             return GetDirectoryNameFunc(path);
@@ -88,11 +85,8 @@ namespace Ganss.IO.Tests
         public Func<string, string> GetDirectoryNameFunc { get; set; }
     }
 
-    public class TestDirectory: MockDirectory
+    public class TestDirectory(IMockFileDataAccessor m, FileBase b, string cwd) : MockDirectory(m, b, cwd)
     {
-        public TestDirectory(IMockFileDataAccessor m, FileBase b, string cwd): base(m, b, cwd)
-        { }
-
         public override string GetCurrentDirectory()
         {
             return GetCurrentDirectoryFunc();
@@ -101,11 +95,8 @@ namespace Ganss.IO.Tests
         public Func<string> GetCurrentDirectoryFunc { get; set; }
     }
 
-    public class TestDirectoryInfo: MockDirectoryInfo
+    public class TestDirectoryInfo(IMockFileDataAccessor m, string p) : MockDirectoryInfo(m, p)
     {
-        public TestDirectoryInfo(IMockFileDataAccessor m, string p): base(m, p)
-        { }
-
         public override IFileSystemInfo[] GetFileSystemInfos()
         {
             return GetFileSystemInfosFunc();

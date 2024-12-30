@@ -1,12 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <SonarQubeExclude>true</SonarQubeExclude>
 	<CoverletOutputFormat>opencover</CoverletOutputFormat>
 	<CoverletOutput>../coverage.xml</CoverletOutput>
 	<Include>[Glob]*</Include>
-	<NoWarn>$(NoWarn);IDE0130</NoWarn>
+	<NoWarn>$(NoWarn);IDE0130;SYSLIB1045</NoWarn>
+	<LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.msbuild" Version="6.0.2">
