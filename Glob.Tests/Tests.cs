@@ -283,8 +283,24 @@ namespace Ganss.IO.Tests
 
             match = g.IsMatch("/dir2/file_x.txt");
             Assert.False(match);
+
+            g.Pattern = "first/*";
+
+            match = g.IsMatch("first/second/third");
+            Assert.False(match);
+
+            match = g.IsMatch("first/second");
+            Assert.True(match);
+
+            g.Pattern = "first/**/third";
+
+            match = g.IsMatch("first/second/third");
+            Assert.True(match);
+
+            match = g.IsMatch("first/second/x");
+            Assert.False(match);
         }
-        
+
         [Fact]
         public void CanSwitchCaseSensitivity()
         {

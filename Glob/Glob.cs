@@ -188,7 +188,7 @@ namespace Ganss.IO
             {
                 [path] = new MockFileData("")
             });
-            var isMatch = ExpandInternal(Pattern, false, mockFileSystem).Any();
+            var isMatch = ExpandInternal(Pattern, false, mockFileSystem).OfType<IFileInfo>().Any();
 
             return isMatch;
         }
