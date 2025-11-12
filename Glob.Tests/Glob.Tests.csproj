@@ -14,7 +14,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="System.IO.Abstractions" Version="22.0.16" />
     <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="22.0.16" />
     <PackageReference Include="System.Security.Permissions" Version="9.0.10" />
