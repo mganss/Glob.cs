@@ -35,7 +35,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="22.1.0" />
-    <PackageReference Include="System.IO.Abstractions" Version="22.1.0" />
+    <PackageReference Include="System.IO.Abstractions" Version="22.1.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.201" PrivateAssets="All" />
   </ItemGroup>
 
