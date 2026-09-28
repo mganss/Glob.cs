@@ -25,6 +25,8 @@ public class TestFileSystem : IFileSystem
     public IFileSystemWatcherFactory FileSystemWatcher => throw new NotImplementedException();
 
     public IFileVersionInfoFactory FileVersionInfo => throw new NotImplementedException();
+
+    public IRandomAccess RandomAccess => throw new NotImplementedException();
 }
 
 public class TestDirectoryInfoFactory : IDirectoryInfoFactory
