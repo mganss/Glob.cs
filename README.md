@@ -2,8 +2,9 @@ Glob.cs
 =======
 
 [![Version](https://img.shields.io/nuget/v/Glob.cs.svg)](https://www.nuget.org/packages/Glob.cs)
-[![Build status](https://ci.appveyor.com/api/projects/status/knmq8uf073fchkty/branch/master?svg=true)](https://ci.appveyor.com/project/mganss/glob-cs/branch/master)
-[![codecov.io](https://codecov.io/github/mganss/Glob.cs/coverage.svg?branch=master)](https://codecov.io/github/mganss/Glob.cs?branch=master)
+[![Build status](https://github.com/mganss/Glob.cs/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/mganss/Glob.cs/actions/workflows/build.yml)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mganss_Glob.cs&metric=coverage)](https://sonarcloud.io/dashboard?id=mganss_Glob.cs)
+[![Sonarcloud Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=mganss_Glob.cs&metric=alert_status)](https://sonarcloud.io/dashboard?id=mganss_Glob.cs)
 [![netstandard2.0](https://img.shields.io/badge/netstandard-2.0-brightgreen.svg)](https://img.shields.io/badge/netstandard-2.0-brightgreen.svg)
 [![net461](https://img.shields.io/badge/net-461-brightgreen.svg)](https://img.shields.io/badge/net-461-brightgreen.svg)
 
