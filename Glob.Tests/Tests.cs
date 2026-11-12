@@ -262,8 +262,12 @@ public class Tests
         match = g.IsMatch("/a/b/c/dir1/dir2/file.txt");
         Assert.True(match);
 
-        match = g.IsMatch(@"c:\dir1\dir2\file.txt");
-        Assert.True(match);
+        if (OperatingSystem.IsWindows())
+        {
+            // backslash is only a path separator on Windows
+            match = g.IsMatch(@"c:\dir1\dir2\file.txt");
+            Assert.True(match);
+        }
 
         match = g.IsMatch("dir0/dir1/dir2/file");
         Assert.True(match);
